@@ -1,0 +1,47 @@
+services:
+  strata-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: strata-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${STRATA_DB_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - strata-db-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\""]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    networks:
+      - strata-network
+
+  strata-api:
+    build: .
+    image: strata-api
+    container_name: strata-api
+    env_file: .env
+    environment:
+      STRATA_PORT: "5000"
+      STRATA_UPLOAD_DIR: /app/upload
+      STRATA_MIGRATIONS_DIR: /app/migrations
+    entrypoint: ["sh", "-c", "strata migrate && exec strata"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - strata-upload:/app/upload
+    depends_on:
+      strata-db:
+        condition: service_healthy
+    networks:
+      - strata-network
+
+volumes:
+  strata-db-data:
+  strata-upload:
+
+networks:
+  strata-network:

@@ -1,0 +1,8 @@
+.git
+.env
+bin
+upload
+*.exe
+*.test
+*.out
+coverage.*
