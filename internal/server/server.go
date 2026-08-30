@@ -23,12 +23,14 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	account.NewHandler(account.NewService(account.NewStore(db), cipher, tokens)).Mount(mux)
 	master.NewHandler(master.NewService(master.NewStore(db), cfg.UploadDir)).Mount(mux)
 	rbdStore := rbd.NewStore(db)
+	totals := rbd.NewTotalHandler(rbd.NewTotalService(rbdStore))
 	rbd.NewSystemHandler(rbd.NewSystemService(rbdStore)).Mount(mux)
 	rbd.NewHierarchyHandler(rbd.NewHierarchyService(rbdStore)).Mount(mux)
 	rbd.NewComponentHandler(rbd.NewComponentService(rbdStore)).Mount(mux)
-	rbd.NewEditorHandler(rbd.NewDrawingService(rbdStore)).Mount(mux)
+	rbd.NewEditorHandler(rbd.NewDrawingService(rbdStore)).WithAfterEdgeSave(totals.AfterEdgeSave).Mount(mux)
 	parameters := rbd.NewParameterService(rbdStore)
 	rbd.NewFailureHandler(rbd.NewFailureService(rbdStore), parameters).Mount(mux)
 	rbd.NewWeibullHandler(parameters).Mount(mux)
+	totals.Mount(mux)
 	return mux
 }
