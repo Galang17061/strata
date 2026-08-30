@@ -25,5 +25,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbdStore := rbd.NewStore(db)
 	rbd.NewSystemHandler(rbd.NewSystemService(rbdStore)).Mount(mux)
 	rbd.NewHierarchyHandler(rbd.NewHierarchyService(rbdStore)).Mount(mux)
+	rbd.NewComponentHandler(rbd.NewComponentService(rbdStore)).Mount(mux)
+	rbd.NewEditorHandler(rbd.NewDrawingService(rbdStore)).Mount(mux)
 	return mux
 }
