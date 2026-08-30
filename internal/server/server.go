@@ -9,6 +9,7 @@ import (
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/config"
 	"github.com/Galang17061/strata-api/internal/master"
+	"github.com/Galang17061/strata-api/internal/rbd"
 	"github.com/Galang17061/strata-api/internal/web"
 )
 
@@ -21,5 +22,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	mux.Get("/files/*", web.StaticFiles(cfg.UploadDir))
 	account.NewHandler(account.NewService(account.NewStore(db), cipher, tokens)).Mount(mux)
 	master.NewHandler(master.NewService(master.NewStore(db), cfg.UploadDir)).Mount(mux)
+	rbdStore := rbd.NewStore(db)
+	rbd.NewSystemHandler(rbd.NewSystemService(rbdStore)).Mount(mux)
 	return mux
 }
