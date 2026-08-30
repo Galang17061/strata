@@ -24,5 +24,6 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	master.NewHandler(master.NewService(master.NewStore(db), cfg.UploadDir)).Mount(mux)
 	rbdStore := rbd.NewStore(db)
 	rbd.NewSystemHandler(rbd.NewSystemService(rbdStore)).Mount(mux)
+	rbd.NewHierarchyHandler(rbd.NewHierarchyService(rbdStore)).Mount(mux)
 	return mux
 }
