@@ -33,12 +33,9 @@ func (s *Store) LastFailureEventId(ctx context.Context) (*string, error) {
 }
 
 func (s *Store) LastFailureNumber(ctx context.Context, systemComponentId string) (*int, error) {
-	var number *int
-	err := s.q.GetContext(ctx, &number, `SELECT TOP 1 failure_number FROM dbo.FailureEventHistory WHERE system_component_id = @p1 ORDER BY failure_number DESC`)
-	if err != nil {
-		return optional(number, err)
-	}
-	return number, nil
+	var number int
+	err := s.q.GetContext(ctx, &number, `SELECT TOP 1 ISNULL(failure_number, 0) FROM dbo.FailureEventHistory WHERE system_component_id = @p1 ORDER BY failure_number DESC`, systemComponentId)
+	return optional(&number, err)
 }
 
 func (s *Store) InsertFailureEvents(ctx context.Context, rows []domain.FailureEventHistory) error {
