@@ -416,7 +416,10 @@ func (s *DrawingService) SaveEdgesByHierarchy(ctx context.Context, hierarchyId s
 		if err := tx.InsertEdges(ctx, mappedEdges(inputs, idToCode)); err != nil {
 			return err
 		}
-		return tx.regenerateTree(ctx, domain.Deref(hierarchy.RbdSystemId), hierarchyId)
+		if err := tx.regenerateTree(ctx, domain.Deref(hierarchy.RbdSystemId), hierarchyId); err != nil {
+			return err
+		}
+		return tx.TouchSystem(ctx, domain.Deref(hierarchy.RbdSystemId))
 	})
 }
 

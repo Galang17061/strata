@@ -158,6 +158,9 @@ func (s *HierarchyService) Create(ctx context.Context, request domain.HierarchyC
 	if err := s.store.InsertHierarchies(ctx, []domain.Hierarchy{hierarchy}); err != nil {
 		return nil, err
 	}
+	if err := s.store.TouchSystem(ctx, rbdSystemId); err != nil {
+		return nil, err
+	}
 	view := domain.HierarchyViewOf(hierarchy)
 	return &view, nil
 }
@@ -218,6 +221,9 @@ func (s *HierarchyService) Update(ctx context.Context, hierarchyId string, reque
 	if err := s.store.UpdateHierarchy(ctx, *existing); err != nil {
 		return nil, err
 	}
+	if err := s.store.TouchSystem(ctx, domain.Deref(existing.RbdSystemId)); err != nil {
+		return nil, err
+	}
 	view := domain.HierarchyViewOf(*existing)
 	return &view, nil
 }
@@ -244,7 +250,10 @@ func (s *HierarchyService) Delete(ctx context.Context, hierarchyId string) error
 	if len(components) > 0 {
 		return domain.InvalidOperation("Cannot delete hierarchy with components. Delete components first.")
 	}
-	return s.store.DeleteHierarchies(ctx, []string{hierarchyId})
+	if err := s.store.DeleteHierarchies(ctx, []string{hierarchyId}); err != nil {
+		return err
+	}
+	return s.store.TouchSystem(ctx, domain.Deref(existing.RbdSystemId))
 }
 
 func (s *HierarchyService) CanAddComponent(ctx context.Context, hierarchyId string) (bool, error) {

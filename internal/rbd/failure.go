@@ -73,7 +73,15 @@ func (s *FailureService) Add(ctx context.Context, inputs []domain.FailureEventCr
 				UpdatedBy:         domain.StringPtr(currentUser),
 			})
 		}
-		return tx.InsertFailureEvents(ctx, rows)
+		if err := tx.InsertFailureEvents(ctx, rows); err != nil {
+			return err
+		}
+		for componentId := range numbers {
+			if err := tx.TouchSystemOfComponent(ctx, componentId); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 }
 
@@ -105,12 +113,15 @@ func (s *FailureService) Delete(ctx context.Context, failureEventId string) erro
 				return err
 			}
 		}
-		return nil
+		return tx.TouchSystemOfComponent(ctx, event.SystemComponentId)
 	})
 }
 
 func (s *FailureService) DeleteAllOfComponent(ctx context.Context, systemComponentId string) error {
-	return s.store.DeleteFailureEventsOfComponent(ctx, systemComponentId)
+	if err := s.store.DeleteFailureEventsOfComponent(ctx, systemComponentId); err != nil {
+		return err
+	}
+	return s.store.TouchSystemOfComponent(ctx, systemComponentId)
 }
 
 type ParameterService struct {

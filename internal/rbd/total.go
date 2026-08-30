@@ -50,6 +50,7 @@ func (s *TotalService) UpdateFormula(ctx context.Context, rbdSystemId, formula s
 		return "", errors.New("Object reference not set to an instance of an object.")
 	}
 	system.Formula = domain.StringPtr(formula)
+	system.UpdatedAt = domain.Now()
 	if err := s.store.UpdateSystem(ctx, *system); err != nil {
 		return "", err
 	}
