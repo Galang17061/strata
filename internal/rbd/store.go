@@ -107,6 +107,30 @@ func (s *Store) FindProject(ctx context.Context, projectId string) (*domain.Mast
 	return optional(&row, err)
 }
 
+func (s *Store) TouchSystem(ctx context.Context, rbdSystemId string) error {
+	if rbdSystemId == "" {
+		return nil
+	}
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.RbdSystemDrawing SET updated_at = @p2 WHERE rbd_system_id = @p1`, rbdSystemId, domain.Now())
+	return err
+}
+
+func (s *Store) TouchSystemOfHierarchy(ctx context.Context, hierarchyId string) error {
+	hierarchy, err := s.FindHierarchy(ctx, hierarchyId)
+	if err != nil || hierarchy == nil {
+		return err
+	}
+	return s.TouchSystem(ctx, domain.Deref(hierarchy.RbdSystemId))
+}
+
+func (s *Store) TouchSystemOfComponent(ctx context.Context, systemComponentId string) error {
+	component, err := s.FindComponent(ctx, systemComponentId)
+	if err != nil || component == nil {
+		return err
+	}
+	return s.TouchSystem(ctx, domain.Deref(component.RbdSystemId))
+}
+
 func (s *Store) ProjectDepthOfSystem(ctx context.Context, rbdSystemId string) (int, error) {
 	var depth int
 	err := s.q.GetContext(ctx, &depth, `SELECT p.hierarchy_depth FROM dbo.RbdSystemDrawing r INNER JOIN dbo.MasterProject p ON p.project_id = r.project_id WHERE r.rbd_system_id = @p1`, rbdSystemId)

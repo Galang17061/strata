@@ -220,6 +220,9 @@ func (s *ComponentService) UpdateDetail(ctx context.Context, systemComponentId s
 				return err
 			}
 		}
+		if err := tx.TouchSystem(ctx, rbdSystemId); err != nil {
+			return err
+		}
 		view := domain.ComponentDetailOf(*existing)
 		detail = &view
 		return nil
@@ -232,7 +235,10 @@ func (s *ComponentService) Delete(ctx context.Context, systemComponentId string)
 	if err != nil || component == nil {
 		return err
 	}
-	return s.store.DeleteComponents(ctx, []string{systemComponentId})
+	if err := s.store.DeleteComponents(ctx, []string{systemComponentId}); err != nil {
+		return err
+	}
+	return s.store.TouchSystem(ctx, domain.Deref(component.RbdSystemId))
 }
 
 func (s *ComponentService) MonitoredComponents(ctx context.Context, search, sortBy, sortOrder string) ([]domain.MonitoredComponent, error) {

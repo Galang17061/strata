@@ -192,6 +192,9 @@ func (s *DrawingService) SaveNodesByHierarchy(ctx context.Context, hierarchyId s
 		if hierarchy == nil {
 			return domain.KeyNotFound("Hierarchy " + hierarchyId + " not found")
 		}
+		if err := tx.TouchSystem(ctx, domain.Deref(hierarchy.RbdSystemId)); err != nil {
+			return err
+		}
 		idNodes := []string{}
 		for _, input := range inputs {
 			if id := domain.Deref(input.IdNode); id != "" {
@@ -322,6 +325,9 @@ func (s *DrawingService) SaveNodesBySystem(ctx context.Context, rbdSystemId stri
 		}
 		if system == nil {
 			return domain.KeyNotFound("RBD System " + rbdSystemId + " not found")
+		}
+		if err := tx.TouchSystem(ctx, rbdSystemId); err != nil {
+			return err
 		}
 		idNodes := []string{}
 		for _, input := range inputs {
