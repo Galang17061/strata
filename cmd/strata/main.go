@@ -57,12 +57,14 @@ func main() {
 func migrate(cfg config.Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
-	if err := database.EnsureDatabase(ctx, cfg.DatabaseURL, cfg.MigrationsDir); err != nil {
-		return err
-	}
 	db, err := database.Open(ctx, cfg.DatabaseURL)
 	if err != nil {
-		return err
+		if ensureErr := database.EnsureDatabase(ctx, cfg.DatabaseURL, cfg.MigrationsDir); ensureErr != nil {
+			return fmt.Errorf("%w (and the database could not be created: %v)", err, ensureErr)
+		}
+		if db, err = database.Open(ctx, cfg.DatabaseURL); err != nil {
+			return err
+		}
 	}
 	defer db.Close()
 	return database.Migrate(ctx, db, cfg.MigrationsDir)
