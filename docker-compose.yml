@@ -39,6 +39,22 @@ services:
     networks:
       - strata-network
 
+  strata-web:
+    build:
+      context: ${STRATA_WEB_DIR:-../strata-web}
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${STRATA_WEB_API_BASE_URL:-http://localhost:5000/api}
+        NEXT_PUBLIC_FILES_BASE_URL: ${STRATA_WEB_FILES_BASE_URL:-}
+        NEXT_PUBLIC_ACCESS_TOKEN_NAME: ${STRATA_WEB_TOKEN_NAME:-strata_token}
+    image: strata-web
+    container_name: strata-web
+    ports:
+      - "${STRATA_WEB_PORT:-3000}:80"
+    depends_on:
+      - strata-api
+    networks:
+      - strata-network
+
 volumes:
   strata-db-data:
   strata-upload:
