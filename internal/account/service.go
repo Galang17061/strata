@@ -169,6 +169,21 @@ func (s *Service) UpdatePassword(ctx context.Context, id domain.Guid, request do
 	if user == nil {
 		return domain.InvalidOperation("Data null")
 	}
+	return s.storeConfirmedPassword(ctx, id, request)
+}
+
+func (s *Service) ResetPassword(ctx context.Context, id domain.Guid, request domain.PasswordUpdate) error {
+	user, err := s.store.FindUser(ctx, id)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return domain.KeyNotFound("Data not found")
+	}
+	return s.storeConfirmedPassword(ctx, id, request)
+}
+
+func (s *Service) storeConfirmedPassword(ctx context.Context, id domain.Guid, request domain.PasswordUpdate) error {
 	encrypted := s.cipher.Encrypt(request.PasswordNew)
 	if encrypted != s.cipher.Encrypt(request.ReconfirmPassword) {
 		return domain.InvalidOperation("new password is not the same as the confirmed password")

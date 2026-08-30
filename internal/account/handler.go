@@ -28,6 +28,7 @@ func (h *Handler) Mount(router chi.Router) {
 	router.Get("/api/User/DetailUser", h.userDetail)
 	router.Post("/api/User", h.createUser)
 	router.Put("/api/User/ChangePassword", h.changePassword)
+	router.With(auth.Require).Put("/api/User/ChangePasswordAdmin", h.resetPassword)
 	router.Put("/api/User/{UserId}", h.updateUser)
 	router.Delete("/api/User/{UserId}", h.deleteUser)
 	router.Group(func(protected chi.Router) {
@@ -173,6 +174,33 @@ func (h *Handler) changePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.service.UpdatePassword(r.Context(), id, request); err != nil {
+		web.RespondException(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
+}
+
+func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
+	id, ok := guidQuery(w, r, "UserId")
+	if !ok {
+		return
+	}
+	var request domain.PasswordUpdate
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	if problems := requiredFields(map[string]string{"PasswordNew": request.PasswordNew, "ReconfirmPassword": request.ReconfirmPassword}); problems != nil {
+		web.RespondValidation(w, problems)
+		return
+	}
+	err := h.service.ResetPassword(r.Context(), id, request)
+	var missing domain.KeyNotFoundError
+	if errors.As(err, &missing) {
+		web.Respond(w, http.StatusNotFound, web.NotFound(missing.Message))
+		return
+	}
+	if err != nil {
 		web.RespondException(w, http.StatusBadRequest, err.Error())
 		return
 	}
