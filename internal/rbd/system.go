@@ -57,9 +57,10 @@ func (st *Store) tree(ctx context.Context, rbdSystemId string, systemName *strin
 	if err != nil {
 		return nil, err
 	}
-	tree := &domain.SystemTree{RbdSystemId: system.RbdSystemId, ProjectId: system.ProjectId, SystemName: domain.Deref(system.SystemName)}
+	tree := &domain.SystemTree{RbdSystemId: system.RbdSystemId, ProjectId: system.ProjectId, HierarchyDepth: 3, SystemName: domain.Deref(system.SystemName)}
 	if project != nil {
 		tree.ProjectName = project.ProjectName
+		tree.HierarchyDepth = project.HierarchyDepth
 	}
 	visited := map[string]bool{}
 	nodes := []domain.TreeNode{}

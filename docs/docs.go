@@ -5113,6 +5113,9 @@ const docTemplate = `{
         "github_com_Galang17061_strata-api_internal_domain.MasterProjectCreate": {
             "type": "object",
             "properties": {
+                "hierarchyDepth": {
+                    "type": "integer"
+                },
                 "projectId": {
                     "type": "string"
                 },

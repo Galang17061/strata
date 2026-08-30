@@ -42,11 +42,12 @@ type SystemUpdate struct {
 }
 
 type SystemTree struct {
-	RbdSystemId string     `json:"rbdSystemId"`
-	ProjectId   string     `json:"projectId"`
-	ProjectName string     `json:"projectName"`
-	SystemName  string     `json:"systemName"`
-	Hierarchy   []TreeNode `json:"hierarchy"`
+	RbdSystemId    string     `json:"rbdSystemId"`
+	ProjectId      string     `json:"projectId"`
+	ProjectName    string     `json:"projectName"`
+	HierarchyDepth int        `json:"hierarchyDepth"`
+	SystemName     string     `json:"systemName"`
+	Hierarchy      []TreeNode `json:"hierarchy"`
 }
 
 type TreeNode struct {
