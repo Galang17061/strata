@@ -56,8 +56,9 @@ type ImportResult struct {
 }
 
 type MasterProjectCreate struct {
-	ProjectId   *string `json:"projectId"`
-	ProjectName string  `json:"projectName"`
+	ProjectId      *string `json:"projectId"`
+	ProjectName    string  `json:"projectName"`
+	HierarchyDepth *int    `json:"hierarchyDepth"`
 }
 
 type MasterProjectUpdate struct {

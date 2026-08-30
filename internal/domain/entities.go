@@ -26,12 +26,13 @@ type MasterComponent struct {
 }
 
 type MasterProject struct {
-	ProjectId   string   `db:"project_id" json:"projectId"`
-	ProjectName string   `db:"project_name" json:"projectName"`
-	CreatedAt   DateTime `db:"created_at" json:"createdAt"`
-	UpdatedAt   DateTime `db:"updated_at" json:"updatedAt"`
-	CreatedBy   *string  `db:"created_by" json:"createdBy"`
-	UpdatedBy   *string  `db:"updated_by" json:"updatedBy"`
+	ProjectId      string   `db:"project_id" json:"projectId"`
+	ProjectName    string   `db:"project_name" json:"projectName"`
+	HierarchyDepth int      `db:"hierarchy_depth" json:"hierarchyDepth"`
+	CreatedAt      DateTime `db:"created_at" json:"createdAt"`
+	UpdatedAt      DateTime `db:"updated_at" json:"updatedAt"`
+	CreatedBy      *string  `db:"created_by" json:"createdBy"`
+	UpdatedBy      *string  `db:"updated_by" json:"updatedBy"`
 }
 
 type RbdSystemDrawing struct {

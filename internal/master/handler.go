@@ -646,6 +646,10 @@ func (h *Handler) createProject(w http.ResponseWriter, r *http.Request) {
 		web.RespondValidation(w, problems)
 		return
 	}
+	if request.HierarchyDepth != nil && (*request.HierarchyDepth < 1 || *request.HierarchyDepth > 10) {
+		web.RespondValidation(w, map[string][]string{"HierarchyDepth": {"HierarchyDepth must be between 1 and 10"}})
+		return
+	}
 	if err := h.service.AddProject(r.Context(), &request, auth.CurrentUserName(r.Context())); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -140,7 +140,7 @@ func (s *Store) RecentComponentProperties(ctx context.Context, count int) ([]dom
 	return rows, s.db.SelectContext(ctx, &rows, `SELECT TOP (@p1) `+domain.SystemComponentColumns+` FROM dbo.SystemComponentProperties ORDER BY updated_at DESC`, count)
 }
 
-const projectColumns = `project_id, project_name, created_at, updated_at, created_by, updated_by`
+const projectColumns = `project_id, project_name, hierarchy_depth, created_at, updated_at, created_by, updated_by`
 
 func (s *Store) ListProjects(ctx context.Context, search string) ([]domain.MasterProject, error) {
 	rows := []domain.MasterProject{}
@@ -169,8 +169,8 @@ func (s *Store) LastProjectId(ctx context.Context) (*string, error) {
 }
 
 func (s *Store) InsertProject(ctx context.Context, p domain.MasterProject) error {
-	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.MasterProject (`+projectColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6)`,
-		p.ProjectId, p.ProjectName, p.CreatedAt, p.UpdatedAt, p.CreatedBy, p.UpdatedBy)
+	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.MasterProject (`+projectColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7)`,
+		p.ProjectId, p.ProjectName, p.HierarchyDepth, p.CreatedAt, p.UpdatedAt, p.CreatedBy, p.UpdatedBy)
 	return err
 }
 

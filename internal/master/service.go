@@ -423,14 +423,17 @@ func (s *Service) AddProject(ctx context.Context, request *domain.MasterProjectC
 		return err
 	}
 	request.ProjectId = domain.StringPtr(newId)
+	depth := domain.DerefInt(request.HierarchyDepth, 3)
+	request.HierarchyDepth = domain.IntPtr(depth)
 	now := domain.Now()
 	return s.store.InsertProject(ctx, domain.MasterProject{
-		ProjectId:   newId,
-		ProjectName: request.ProjectName,
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		CreatedBy:   domain.StringPtr(currentUser),
-		UpdatedBy:   domain.StringPtr(currentUser),
+		ProjectId:      newId,
+		ProjectName:    request.ProjectName,
+		HierarchyDepth: depth,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		CreatedBy:      domain.StringPtr(currentUser),
+		UpdatedBy:      domain.StringPtr(currentUser),
 	})
 }
 
