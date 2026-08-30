@@ -1,0 +1,7 @@
+bin/
+.env
+upload/
+*.exe
+*.test
+*.out
+coverage.*
