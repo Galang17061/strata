@@ -48,7 +48,9 @@ func hierarchyComparer(sortBy string) func(a, b domain.HierarchyView) int {
 	case "level":
 		return func(a, b domain.HierarchyView) int { return domain.CompareInt64(int64(a.Level), int64(b.Level)) }
 	case "realibilityvalue":
-		return func(a, b domain.HierarchyView) int { return domain.CompareNumber(a.RealibilityValue, b.RealibilityValue) }
+		return func(a, b domain.HierarchyView) int {
+			return domain.CompareNumber(a.RealibilityValue, b.RealibilityValue)
+		}
 	case "runninghours":
 		return func(a, b domain.HierarchyView) int {
 			return domain.CompareInt64(int64(domain.DerefInt(a.RunningHours, 0)), int64(domain.DerefInt(b.RunningHours, 0)))

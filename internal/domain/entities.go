@@ -89,20 +89,20 @@ type SystemComponentDrawing struct {
 }
 
 type Hierarchy struct {
-	HierarchyId      string   `db:"hierarchy_id" json:"hierarchyId"`
-	RbdSystemId      *string  `db:"rbd_system_id" json:"rbdSystemId"`
-	ParentId         string   `db:"parent_id" json:"parentId"`
-	Level            int      `db:"level" json:"level"`
-	SubSystemName    *string  `db:"sub_system_name" json:"subSystemName"`
-	Formula          *string  `db:"formula" json:"formula"`
-	FormulaCode      *string  `db:"formula_code" json:"formulaCode"`
-	ConnectionType   *string  `db:"connection_type" json:"connectionType"`
-	RealibilityValue *Number  `db:"realibility_value" json:"realibilityValue"`
-	RunningHours     *int     `db:"running_hours" json:"runningHours"`
-	PositionX        *Number  `db:"position_x" json:"positionX"`
-	PositionY        *Number  `db:"position_y" json:"positionY"`
-	SourceId         *string  `db:"source_id" json:"sourceId"`
-	TargetId         *string  `db:"target_id" json:"targetId"`
+	HierarchyId      string  `db:"hierarchy_id" json:"hierarchyId"`
+	RbdSystemId      *string `db:"rbd_system_id" json:"rbdSystemId"`
+	ParentId         string  `db:"parent_id" json:"parentId"`
+	Level            int     `db:"level" json:"level"`
+	SubSystemName    *string `db:"sub_system_name" json:"subSystemName"`
+	Formula          *string `db:"formula" json:"formula"`
+	FormulaCode      *string `db:"formula_code" json:"formulaCode"`
+	ConnectionType   *string `db:"connection_type" json:"connectionType"`
+	RealibilityValue *Number `db:"realibility_value" json:"realibilityValue"`
+	RunningHours     *int    `db:"running_hours" json:"runningHours"`
+	PositionX        *Number `db:"position_x" json:"positionX"`
+	PositionY        *Number `db:"position_y" json:"positionY"`
+	SourceId         *string `db:"source_id" json:"sourceId"`
+	TargetId         *string `db:"target_id" json:"targetId"`
 }
 
 type FailureEventHistory struct {
@@ -161,19 +161,19 @@ type ReliabilityPlotComponent struct {
 }
 
 type ReliabilityHistory struct {
-	HistoryId              string   `db:"history_id" json:"historyId"`
-	RbdSystemId            string   `db:"rbd_system_id" json:"rbdSystemId"`
-	HierarchyId            string   `db:"hierarchy_id" json:"hierarchyId"`
-	HierarchyName          *string  `db:"hierarchy_name" json:"hierarchyName"`
-	HierarchyLevel         *int     `db:"hierarchy_level" json:"hierarchyLevel"`
-	FormulaCode            *string  `db:"formula_code" json:"formulaCode"`
-	Formula                *string  `db:"formula" json:"formula"`
-	CalculatedReliability  *Number  `db:"calculated_reliability" json:"calculatedReliability"`
-	ReliabilityLookup      *string  `db:"reliability_lookup" json:"reliabilityLookup"`
-	ComponentDetails       *string  `db:"component_details" json:"componentDetails"`
-	RunningHours           *Number  `db:"running_hours" json:"runningHours"`
-	CalculationTimestamp   DateTime `db:"calculation_timestamp" json:"calculationTimestamp"`
-	CalculatedBy           *string  `db:"calculated_by" json:"calculatedBy"`
+	HistoryId             string   `db:"history_id" json:"historyId"`
+	RbdSystemId           string   `db:"rbd_system_id" json:"rbdSystemId"`
+	HierarchyId           string   `db:"hierarchy_id" json:"hierarchyId"`
+	HierarchyName         *string  `db:"hierarchy_name" json:"hierarchyName"`
+	HierarchyLevel        *int     `db:"hierarchy_level" json:"hierarchyLevel"`
+	FormulaCode           *string  `db:"formula_code" json:"formulaCode"`
+	Formula               *string  `db:"formula" json:"formula"`
+	CalculatedReliability *Number  `db:"calculated_reliability" json:"calculatedReliability"`
+	ReliabilityLookup     *string  `db:"reliability_lookup" json:"reliabilityLookup"`
+	ComponentDetails      *string  `db:"component_details" json:"componentDetails"`
+	RunningHours          *Number  `db:"running_hours" json:"runningHours"`
+	CalculationTimestamp  DateTime `db:"calculation_timestamp" json:"calculationTimestamp"`
+	CalculatedBy          *string  `db:"calculated_by" json:"calculatedBy"`
 }
 
 func StringPtr(value string) *string {

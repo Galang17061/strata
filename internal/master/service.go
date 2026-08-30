@@ -39,7 +39,9 @@ func (s *Service) ListManufacturers(ctx context.Context, search, sortBy, sortOrd
 		compare := manufacturerComparer(sortBy)
 		domain.OrderBy(rows, strings.ToLower(sortOrder) == "desc", compare)
 	} else {
-		domain.OrderBy(rows, false, func(a, b domain.MasterManufacturer) int { return domain.CompareText(a.ManufacturerName, b.ManufacturerName) })
+		domain.OrderBy(rows, false, func(a, b domain.MasterManufacturer) int {
+			return domain.CompareText(a.ManufacturerName, b.ManufacturerName)
+		})
 	}
 	return rows, nil
 }
@@ -53,7 +55,9 @@ func manufacturerComparer(sortBy string) func(a, b domain.MasterManufacturer) in
 			return domain.CompareInt64(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())
 		}
 	default:
-		return func(a, b domain.MasterManufacturer) int { return domain.CompareText(a.ManufacturerName, b.ManufacturerName) }
+		return func(a, b domain.MasterManufacturer) int {
+			return domain.CompareText(a.ManufacturerName, b.ManufacturerName)
+		}
 	}
 }
 
@@ -215,7 +219,9 @@ func (s *Service) ListComponents(ctx context.Context, search, sortBy, sortOrder 
 func componentComparer(sortBy string) func(a, b domain.MasterComponentView) int {
 	switch strings.ToLower(sortBy) {
 	case "manufacturername":
-		return func(a, b domain.MasterComponentView) int { return domain.CompareText(a.ManufacturerName, b.ManufacturerName) }
+		return func(a, b domain.MasterComponentView) int {
+			return domain.CompareText(a.ManufacturerName, b.ManufacturerName)
+		}
 	case "failurerate":
 		return func(a, b domain.MasterComponentView) int { return domain.CompareNumber(a.FailureRate, b.FailureRate) }
 	case "createdat":
@@ -342,13 +348,17 @@ func (s *Service) ListProjectSystems(ctx context.Context, search, sortBy, sortOr
 func projectSystemComparer(sortBy string) func(a, b domain.MasterProjectRbd) int {
 	switch strings.ToLower(sortBy) {
 	case "systemname":
-		return func(a, b domain.MasterProjectRbd) int { return domain.CompareText(domain.Deref(a.SystemName), domain.Deref(b.SystemName)) }
+		return func(a, b domain.MasterProjectRbd) int {
+			return domain.CompareText(domain.Deref(a.SystemName), domain.Deref(b.SystemName))
+		}
 	case "drawingname":
 		return func(a, b domain.MasterProjectRbd) int {
 			return domain.CompareText(domain.Deref(a.DrawingName), domain.Deref(b.DrawingName))
 		}
 	case "reliabilitytotal":
-		return func(a, b domain.MasterProjectRbd) int { return domain.CompareNumber(a.ReliabilityTotal, b.ReliabilityTotal) }
+		return func(a, b domain.MasterProjectRbd) int {
+			return domain.CompareNumber(a.ReliabilityTotal, b.ReliabilityTotal)
+		}
 	case "createdat":
 		return func(a, b domain.MasterProjectRbd) int {
 			return domain.CompareInt64(a.CreatedAt.UnixNano(), b.CreatedAt.UnixNano())

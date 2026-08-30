@@ -22,7 +22,9 @@ func (s *ComponentService) ScpList(ctx context.Context, search, sortBy, sortOrde
 	if err != nil {
 		return nil, err
 	}
-	compare := func(a, b domain.ScpListItem) int { return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName)) }
+	compare := func(a, b domain.ScpListItem) int {
+		return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName))
+	}
 	if sortBy != "" && sortOrder != "" {
 		switch strings.ToLower(sortBy) {
 		case "totalcomponent":
@@ -250,11 +252,15 @@ func (s *ComponentService) MonitoredComponents(ctx context.Context, search, sort
 			ShapeParameter:   row.ShapeParameter,
 		})
 	}
-	compare := func(a, b domain.MonitoredComponent) int { return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName)) }
+	compare := func(a, b domain.MonitoredComponent) int {
+		return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName))
+	}
 	if sortBy != "" && sortOrder != "" {
 		switch strings.ToLower(sortBy) {
 		case "vendor":
-			compare = func(a, b domain.MonitoredComponent) int { return domain.CompareText(domain.Deref(a.Vendor), domain.Deref(b.Vendor)) }
+			compare = func(a, b domain.MonitoredComponent) int {
+				return domain.CompareText(domain.Deref(a.Vendor), domain.Deref(b.Vendor))
+			}
 		case "distributiontype":
 			compare = func(a, b domain.MonitoredComponent) int {
 				return domain.CompareText(domain.Deref(a.DistributionType), domain.Deref(b.DistributionType))
@@ -298,13 +304,19 @@ func (s *ComponentService) CalculationSummary(ctx context.Context, search, sortB
 			ReliabilityValue: &value,
 		})
 	}
-	compare := func(a, b domain.CalculationRow) int { return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName)) }
+	compare := func(a, b domain.CalculationRow) int {
+		return domain.CompareText(domain.Deref(a.ComponentName), domain.Deref(b.ComponentName))
+	}
 	if sortBy != "" && sortOrder != "" {
 		switch strings.ToLower(sortBy) {
 		case "connectiontype":
-			compare = func(a, b domain.CalculationRow) int { return domain.CompareText(domain.Deref(a.ConnectionType), domain.Deref(b.ConnectionType)) }
+			compare = func(a, b domain.CalculationRow) int {
+				return domain.CompareText(domain.Deref(a.ConnectionType), domain.Deref(b.ConnectionType))
+			}
 		case "reliabilityvalue":
-			compare = func(a, b domain.CalculationRow) int { return domain.CompareFloat(derefFloat(a.ReliabilityValue), derefFloat(b.ReliabilityValue)) }
+			compare = func(a, b domain.CalculationRow) int {
+				return domain.CompareFloat(derefFloat(a.ReliabilityValue), derefFloat(b.ReliabilityValue))
+			}
 		}
 		domain.OrderBy(result, strings.ToLower(sortOrder) == "desc", compare)
 	} else {
