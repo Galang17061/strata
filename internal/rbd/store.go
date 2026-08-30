@@ -103,8 +103,20 @@ func (s *Store) DeleteSystem(ctx context.Context, rbdSystemId string) error {
 
 func (s *Store) FindProject(ctx context.Context, projectId string) (*domain.MasterProject, error) {
 	var row domain.MasterProject
-	err := s.q.GetContext(ctx, &row, `SELECT project_id, project_name, created_at, updated_at, created_by, updated_by FROM dbo.MasterProject WHERE project_id = @p1`, projectId)
+	err := s.q.GetContext(ctx, &row, `SELECT project_id, project_name, hierarchy_depth, created_at, updated_at, created_by, updated_by FROM dbo.MasterProject WHERE project_id = @p1`, projectId)
 	return optional(&row, err)
+}
+
+func (s *Store) ProjectDepthOfSystem(ctx context.Context, rbdSystemId string) (int, error) {
+	var depth int
+	err := s.q.GetContext(ctx, &depth, `SELECT p.hierarchy_depth FROM dbo.RbdSystemDrawing r INNER JOIN dbo.MasterProject p ON p.project_id = r.project_id WHERE r.rbd_system_id = @p1`, rbdSystemId)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 3, nil
+	}
+	if err != nil {
+		return 3, err
+	}
+	return depth, nil
 }
 
 func (s *Store) FindHierarchy(ctx context.Context, hierarchyId string) (*domain.Hierarchy, error) {

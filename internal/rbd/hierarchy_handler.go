@@ -135,8 +135,8 @@ func (h *HierarchyHandler) create(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(domain.Deref(request.ParentId)) == "" {
 		problems["ParentId"] = []string{"ParentId is required"}
 	}
-	if level := domain.DerefInt(request.Level, 0); level < 1 || level > 3 {
-		problems["Level"] = []string{"Level must be between 1 and 3"}
+	if level := domain.DerefInt(request.Level, 0); level < 1 {
+		problems["Level"] = []string{"Level must be at least 1"}
 	}
 	if strings.TrimSpace(domain.Deref(request.SubSystemName)) == "" {
 		problems["SubSystemName"] = []string{"SubSystemName is required"}

@@ -2,6 +2,7 @@ package rbd
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/Galang17061/strata-api/internal/domain"
@@ -11,6 +12,7 @@ type hydration struct {
 	tx                     *Store
 	rbdSystemId            string
 	currentUser            string
+	maxDepth               int
 	hierarchiesById        map[string]*domain.Hierarchy
 	hierarchyOrder         []string
 	hierarchiesByParent    map[string][]domain.Hierarchy
@@ -78,6 +80,11 @@ func preloadHydration(ctx context.Context, tx *Store, rbdSystemId, currentUser s
 		masterCache:            map[string]domain.MasterComponentWithVendor{},
 		usedCodes:              map[string]bool{},
 	}
+	depth, err := tx.ProjectDepthOfSystem(ctx, rbdSystemId)
+	if err != nil {
+		return nil, err
+	}
+	h.maxDepth = depth
 	hierarchies, err := tx.HierarchiesOfSystem(ctx, rbdSystemId)
 	if err != nil {
 		return nil, err
@@ -150,6 +157,9 @@ func (h *hydration) processHierarchies(ctx context.Context, incoming []domain.Tr
 		if parent, ok := h.hierarchiesById[parentId]; ok {
 			level = parent.Level + 1
 		}
+	}
+	if len(incoming) > 0 && level > h.maxDepth {
+		return domain.InvalidOperation("Maximum hierarchy level is " + strconv.Itoa(h.maxDepth))
 	}
 	for index, node := range incoming {
 		hierarchyId, err := h.processNode(ctx, node, parentId, level, index)

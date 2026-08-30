@@ -2,6 +2,7 @@ package rbd
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/Galang17061/strata-api/internal/domain"
@@ -88,9 +89,6 @@ func (s *HierarchyService) Children(ctx context.Context, parentId string) ([]dom
 
 func (s *HierarchyService) Create(ctx context.Context, request domain.HierarchyCreate) (*domain.HierarchyView, error) {
 	level := domain.DerefInt(request.Level, 0)
-	if level < 1 || level > 3 {
-		return nil, domain.InvalidOperation("Level must be between 1 and 3")
-	}
 	rbdSystemId := domain.Deref(request.RbdSystemId)
 	exists, err := s.store.SystemExists(ctx, rbdSystemId)
 	if err != nil {
@@ -98,6 +96,13 @@ func (s *HierarchyService) Create(ctx context.Context, request domain.HierarchyC
 	}
 	if !exists {
 		return nil, domain.InvalidOperation("RBD System " + rbdSystemId + " not found")
+	}
+	depth, err := s.store.ProjectDepthOfSystem(ctx, rbdSystemId)
+	if err != nil {
+		return nil, err
+	}
+	if level < 1 || level > depth {
+		return nil, domain.InvalidOperation("Level must be between 1 and " + strconv.Itoa(depth))
 	}
 	parentId := domain.Deref(request.ParentId)
 	if parentId != rbdSystemId {

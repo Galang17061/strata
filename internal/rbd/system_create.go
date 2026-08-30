@@ -2,24 +2,25 @@ package rbd
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/Galang17061/strata-api/internal/domain"
 )
 
 const (
-	firstColumnX     = 50
-	columnSpacing    = 250
-	hierarchyRowY    = 5
-	virtualInX       = firstColumnX - 150
-	defaultRunning   = 1000
-	maxHierarchyDeep = 3
+	firstColumnX   = 50
+	columnSpacing  = 250
+	hierarchyRowY  = 5
+	virtualInX     = firstColumnX - 150
+	defaultRunning = 1000
 )
 
 type creation struct {
 	tx               *Store
 	rbdSystemId      string
 	currentUser      string
+	maxDepth         int
 	hierarchies      []domain.Hierarchy
 	components       []domain.SystemComponentProperties
 	virtualNodes     []domain.Hierarchy
@@ -59,7 +60,13 @@ func (s *SystemService) Create(ctx context.Context, request domain.SystemCreate,
 		if err != nil {
 			return err
 		}
-		c := &creation{tx: tx, rbdSystemId: newId, currentUser: currentUser, hierarchyCounter: counterAfter(lastHierarchy, "H-"), componentCounter: counterAfter(lastComponent, "SCP-")}
+		depth := 3
+		if project, err := tx.FindProject(ctx, domain.Deref(request.ProjectId)); err != nil {
+			return err
+		} else if project != nil {
+			depth = project.HierarchyDepth
+		}
+		c := &creation{tx: tx, rbdSystemId: newId, currentUser: currentUser, maxDepth: depth, hierarchyCounter: counterAfter(lastHierarchy, "H-"), componentCounter: counterAfter(lastComponent, "SCP-")}
 		if err := c.processNodes(ctx, request.Hierarchy, nil, 1); err != nil {
 			return err
 		}
@@ -105,8 +112,8 @@ func (s *SystemService) Create(ctx context.Context, request domain.SystemCreate,
 }
 
 func (c *creation) processNodes(ctx context.Context, nodes []domain.TreeInput, parentId *string, level int) error {
-	if level > maxHierarchyDeep {
-		return domain.InvalidOperation("Maximum hierarchy level is 3")
+	if level > c.maxDepth {
+		return domain.InvalidOperation("Maximum hierarchy level is " + strconv.Itoa(c.maxDepth))
 	}
 	usedCodes := map[string]bool{}
 	for index, node := range nodes {
