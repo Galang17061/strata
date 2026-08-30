@@ -33,6 +33,19 @@ func (h *HierarchyHandler) Mount(router chi.Router) {
 	})
 }
 
+// @Summary List hierarchy levels with optional search, sorting and paging
+// @Tags Hierarchy
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Rows per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Sort field"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy [get]
 func (h *HierarchyHandler) list(w http.ResponseWriter, r *http.Request) {
 	page, err := web.QueryOptionalInt(r, "page")
 	if err != nil {
@@ -53,6 +66,15 @@ func (h *HierarchyHandler) list(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Hierarchies retrieved successfully", meta))
 }
 
+// @Summary Retrieve one hierarchy level by id
+// @Tags Hierarchy
+// @Produce json
+// @Param id path string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy/{id} [get]
 func (h *HierarchyHandler) byId(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	view, err := h.service.Find(r.Context(), id)
@@ -67,6 +89,14 @@ func (h *HierarchyHandler) byId(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(view, "Hierarchy retrieved successfully"))
 }
 
+// @Summary List the child hierarchy levels of a parent
+// @Tags Hierarchy
+// @Produce json
+// @Param parentId path string true "Parent hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy/parent/{parentId} [get]
 func (h *HierarchyHandler) byParent(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.service.Children(r.Context(), chi.URLParam(r, "parentId"))
 	if err != nil {
@@ -82,6 +112,16 @@ func lengthProblems(problems map[string][]string, name string, value *string, li
 	}
 }
 
+// @Summary Create a subsystem level beneath a parent in a system
+// @Tags Hierarchy
+// @Accept json
+// @Produce json
+// @Param request body domain.HierarchyCreate true "Subsystem level details"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy [post]
 func (h *HierarchyHandler) create(w http.ResponseWriter, r *http.Request) {
 	var request domain.HierarchyCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -123,6 +163,18 @@ func (h *HierarchyHandler) create(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusCreated, web.Success(view, "Hierarchy created successfully"))
 }
 
+// @Summary Update the details of a hierarchy level
+// @Tags Hierarchy
+// @Accept json
+// @Produce json
+// @Param id path string true "Hierarchy id"
+// @Param request body domain.HierarchyUpdate true "Fields to change"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy/{id} [put]
 func (h *HierarchyHandler) update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var request domain.HierarchyUpdate
@@ -156,6 +208,15 @@ func (h *HierarchyHandler) update(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(view, "Hierarchy updated successfully"))
 }
 
+// @Summary Delete a hierarchy level
+// @Tags Hierarchy
+// @Produce json
+// @Param id path string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy/{id} [delete]
 func (h *HierarchyHandler) remove(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.Delete(r.Context(), chi.URLParam(r, "id")); err != nil {
 		var invalid domain.InvalidOperationError
@@ -169,6 +230,14 @@ func (h *HierarchyHandler) remove(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Hierarchy deleted successfully"))
 }
 
+// @Summary Check whether components may be added to a hierarchy level
+// @Tags Hierarchy
+// @Produce json
+// @Param hierarchyId path string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Hierarchy/{hierarchyId}/can-add-component [get]
 func (h *HierarchyHandler) canAddComponent(w http.ResponseWriter, r *http.Request) {
 	canAdd, err := h.service.CanAddComponent(r.Context(), chi.URLParam(r, "hierarchyId"))
 	if err != nil {

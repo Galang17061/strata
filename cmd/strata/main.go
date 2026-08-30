@@ -16,6 +16,13 @@ import (
 	"github.com/Galang17061/strata-api/internal/server"
 )
 
+// @title Strata API
+// @version 1.0
+// @description Reliability block diagram service: projects, systems, hierarchies, components, failure history, and reliability figures over running hours
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	cfg, err := config.Load()
 	if err != nil {

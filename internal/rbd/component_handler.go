@@ -55,6 +55,19 @@ func readListQuery(w http.ResponseWriter, r *http.Request) (listQuery, bool) {
 	return listQuery{page: page, pageSize: pageSize, search: web.QueryString(r, "search"), sortBy: web.QueryString(r, "sortBy"), sortOrder: web.QueryStringOr(r, "sortOrder", "asc")}, true
 }
 
+// @Summary List component properties with optional search, sorting and paging
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Rows per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Sort field"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/list [get]
 func (h *ComponentHandler) list(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -69,6 +82,15 @@ func (h *ComponentHandler) list(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "System component properties retrieved successfully", meta))
 }
 
+// @Summary Retrieve the properties of one component
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "Component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId} [get]
 func (h *ComponentHandler) detail(w http.ResponseWriter, r *http.Request) {
 	detail, err := h.service.Detail(r.Context(), chi.URLParam(r, "systemComponentId"))
 	if err != nil {
@@ -82,6 +104,16 @@ func (h *ComponentHandler) detail(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(detail, "Success"))
 }
 
+// @Summary Add a component beneath a hierarchy level
+// @Tags SystemComponentProperties
+// @Accept json
+// @Produce json
+// @Param request body domain.ComponentSimpleCreate true "Parent hierarchy id and component name"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties [post]
 func (h *ComponentHandler) create(w http.ResponseWriter, r *http.Request) {
 	var request domain.ComponentSimpleCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -113,6 +145,18 @@ func (h *ComponentHandler) create(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusCreated, web.Created(detail, "Component created successfully"))
 }
 
+// @Summary Update the properties of a component
+// @Tags SystemComponentProperties
+// @Accept json
+// @Produce json
+// @Param systemComponentId path string true "Component id"
+// @Param request body domain.ComponentDetailUpdate true "Component properties to change"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId} [put]
 func (h *ComponentHandler) update(w http.ResponseWriter, r *http.Request) {
 	systemComponentId := chi.URLParam(r, "systemComponentId")
 	var request domain.ComponentDetailUpdate
@@ -137,6 +181,15 @@ func (h *ComponentHandler) update(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(detail, "Data updated successfully"))
 }
 
+// @Summary Delete a component
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "Component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId} [delete]
 func (h *ComponentHandler) remove(w http.ResponseWriter, r *http.Request) {
 	systemComponentId := chi.URLParam(r, "systemComponentId")
 	component, err := h.service.Find(r.Context(), systemComponentId)
@@ -155,6 +208,19 @@ func (h *ComponentHandler) remove(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary List monitored components with their running hours and reliability
+// @Tags SystemMonitoring
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Rows per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Sort field"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemMonitoring/GetDataComponent [get]
 func (h *ComponentHandler) monitoring(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -169,6 +235,19 @@ func (h *ComponentHandler) monitoring(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary Retrieve the reliability calculation summary across all systems
+// @Tags SystemMonitoring
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Rows per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Sort field"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemMonitoring/GetRBDCalculation [get]
 func (h *ComponentHandler) calculation(w http.ResponseWriter, r *http.Request) {
 	if _, err := web.QueryInt(r, "page", 1); err != nil {
 		web.RespondFieldProblem(w, "page", err)

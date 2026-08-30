@@ -48,6 +48,15 @@ func (h *Handler) Mount(router chi.Router) {
 	})
 }
 
+// @Summary Sign in with a username and password to obtain a bearer token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body domain.LoginRequest true "Credentials"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 401 {object} map[string]string
+// @Router /api/Auth/Login [post]
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	var request domain.LoginRequest
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -66,10 +75,23 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(response, "Success"))
 }
 
+// @Summary Sign out of the current session
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Auth/logout [post]
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Successfully logged out."))
 }
 
+// @Summary Show the profile of the signed-in user
+// @Tags User
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/User/me [get]
 func (h *Handler) currentUser(w http.ResponseWriter, r *http.Request) {
 	identity, ok := auth.IdentityFrom(r.Context())
 	if !ok || identity.Id == "" {
@@ -86,6 +108,16 @@ func (h *Handler) currentUser(w http.ResponseWriter, r *http.Request) {
 	}{identity.Id, identity.Fullname, identity.Username, identity.Email, identity.RoleId, identity.Role})
 }
 
+// @Summary List users one page at a time
+// @Tags User
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/User [get]
 func (h *Handler) listUsers(w http.ResponseWriter, r *http.Request) {
 	page, pageSize, ok := pagingQuery(w, r)
 	if !ok {
@@ -100,6 +132,15 @@ func (h *Handler) listUsers(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary Show the details of one user
+// @Tags User
+// @Produce json
+// @Param IdUser query string false "User id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/User/DetailUser [get]
 func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidQuery(w, r, "IdUser")
 	if !ok {
@@ -113,6 +154,16 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(data, "Success"))
 }
 
+// @Summary Register a new user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body domain.UserCreate true "User to create"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/User [post]
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	var request domain.UserCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -130,6 +181,18 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Created(request, "Data successfully "))
 }
 
+// @Summary Update the profile of an existing user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param UserId path string true "User id"
+// @Param request body domain.UserUpdate true "Updated user fields"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/User/{UserId} [put]
 func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "UserId")
 	if !ok {
@@ -155,6 +218,18 @@ func (h *Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Change the password of a user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param UserId query string false "User id"
+// @Param request body domain.PasswordUpdate true "New password and its confirmation"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/User/ChangePassword [put]
 func (h *Handler) changePassword(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidQuery(w, r, "UserId")
 	if !ok {
@@ -180,6 +255,18 @@ func (h *Handler) changePassword(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Reset the password of a user as an administrator
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param UserId query string false "User id"
+// @Param request body domain.PasswordUpdate true "New password and its confirmation"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 404 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/User/ChangePasswordAdmin [put]
 func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidQuery(w, r, "UserId")
 	if !ok {
@@ -207,6 +294,15 @@ func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Remove a user
+// @Tags User
+// @Produce json
+// @Param UserId path string true "User id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/User/{UserId} [delete]
 func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "UserId")
 	if !ok {
@@ -223,6 +319,16 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary List roles one page at a time
+// @Tags Role
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/Role [get]
 func (h *Handler) listRoles(w http.ResponseWriter, r *http.Request) {
 	page, pageSize, ok := pagingQuery(w, r)
 	if !ok {
@@ -237,6 +343,16 @@ func (h *Handler) listRoles(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary Show one role
+// @Tags Role
+// @Produce json
+// @Param RoleId path string true "Role id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/Role/{RoleId} [get]
 func (h *Handler) roleById(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "RoleId")
 	if !ok {
@@ -254,6 +370,16 @@ func (h *Handler) roleById(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(role, "Success"))
 }
 
+// @Summary Create a new role
+// @Tags Role
+// @Accept json
+// @Produce json
+// @Param request body domain.RoleCreate true "Role to create"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/Role [post]
 func (h *Handler) createRole(w http.ResponseWriter, r *http.Request) {
 	var request domain.RoleCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -271,6 +397,19 @@ func (h *Handler) createRole(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Created(request, "Data successfully "))
 }
 
+// @Summary Update an existing role
+// @Tags Role
+// @Accept json
+// @Produce json
+// @Param RoleId path string true "Role id"
+// @Param request body domain.RoleCreate true "Updated role fields"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/Role/{RoleId} [put]
 func (h *Handler) updateRole(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "RoleId")
 	if !ok {
@@ -301,6 +440,17 @@ func (h *Handler) updateRole(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Remove a role
+// @Tags Role
+// @Produce json
+// @Param RoleId path string true "Role id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/Role/{RoleId} [delete]
 func (h *Handler) deleteRole(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "RoleId")
 	if !ok {
@@ -322,6 +472,16 @@ func (h *Handler) deleteRole(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary List user access entries one page at a time
+// @Tags UserAccess
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/UserAccess [get]
 func (h *Handler) listAccess(w http.ResponseWriter, r *http.Request) {
 	page, pageSize, ok := pagingQuery(w, r)
 	if !ok {
@@ -336,6 +496,16 @@ func (h *Handler) listAccess(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary List the access entries granted to one user
+// @Tags UserAccess
+// @Produce json
+// @Param UserId path string true "User id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/UserAccess/{UserId} [get]
 func (h *Handler) accessOfUser(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "UserId")
 	if !ok {
@@ -353,6 +523,16 @@ func (h *Handler) accessOfUser(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(rows, "Success"))
 }
 
+// @Summary Grant a user access to a module
+// @Tags UserAccess
+// @Accept json
+// @Produce json
+// @Param request body domain.UserAccessCreate true "Access entry to create"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/UserAccess [post]
 func (h *Handler) createAccess(w http.ResponseWriter, r *http.Request) {
 	var request domain.UserAccessCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -370,6 +550,17 @@ func (h *Handler) createAccess(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Created(request, "Data successfully "))
 }
 
+// @Summary Create or update several access entries in one call
+// @Tags UserAccess
+// @Accept json
+// @Produce json
+// @Param request body []domain.UserAccessCreate true "Access entries to create or update"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Failure 500 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/UserAccess/CreateOrUpdateMany [post]
 func (h *Handler) createOrUpdateMany(w http.ResponseWriter, r *http.Request) {
 	var requests []domain.UserAccessCreate
 	if err := web.DecodeBody(r, &requests); err != nil {
@@ -398,6 +589,17 @@ func (h *Handler) createOrUpdateMany(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Created(web.NonNil(requests), "Data successfully added"))
 }
 
+// @Summary Update an access entry
+// @Tags UserAccess
+// @Accept json
+// @Produce json
+// @Param Id path string true "Access entry id"
+// @Param request body domain.UserAccessEdit true "Updated access fields"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/UserAccess/{Id} [put]
 func (h *Handler) updateAccess(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "Id")
 	if !ok {
@@ -419,6 +621,15 @@ func (h *Handler) updateAccess(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Remove an access entry
+// @Tags UserAccess
+// @Produce json
+// @Param Id path string true "Access entry id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.ExceptionBody
+// @Security BearerAuth
+// @Router /api/UserAccess/{Id} [delete]
 func (h *Handler) deleteAccess(w http.ResponseWriter, r *http.Request) {
 	id, ok := guidParam(w, r, "Id")
 	if !ok {
@@ -431,6 +642,12 @@ func (h *Handler) deleteAccess(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary Show the settings endpoint placeholder
+// @Tags Settings
+// @Produce json
+// @Success 200 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Settings [get]
 func (h *Handler) settings(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(map[string]string{"message": "Settings endpoint"}, "Success"))
 }

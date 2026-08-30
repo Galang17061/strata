@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 
+	_ "github.com/Galang17061/strata-api/docs"
 	"github.com/Galang17061/strata-api/internal/account"
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/config"
@@ -20,6 +22,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	mux.Use(auth.Authenticate(tokens))
 	mux.Get("/health", web.Health)
 	mux.Get("/files/*", web.StaticFiles(cfg.UploadDir))
+	mux.Get("/swagger/*", httpSwagger.WrapHandler)
 	account.NewHandler(account.NewService(account.NewStore(db), cipher, tokens)).Mount(mux)
 	master.NewHandler(master.NewService(master.NewStore(db), cfg.UploadDir)).Mount(mux)
 	rbdStore := rbd.NewStore(db)

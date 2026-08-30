@@ -34,6 +34,17 @@ func (h *PlotHandler) Mount(router chi.Router) {
 	})
 }
 
+// @Summary Update the running hours used to evaluate the reliability of a system
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Param runningHours query number false "Running hours, zero or more"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/update-running-hours [put]
 func (h *PlotHandler) updateRunningHours(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := web.QueryString(r, "rbdSystemId")
 	runningHours := decimal.Zero
@@ -65,6 +76,15 @@ func (h *PlotHandler) updateRunningHours(w http.ResponseWriter, r *http.Request)
 	web.Respond(w, http.StatusOK, web.Success(nil, "Running hours updated successfully"))
 }
 
+// @Summary Get the reliability plot time series of a system
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/reliabilityPlot [get]
 func (h *PlotHandler) systemPlot(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := web.QueryString(r, "rbdSystemId")
 	if strings.TrimSpace(rbdSystemId) == "" {
@@ -79,6 +99,16 @@ func (h *PlotHandler) systemPlot(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(points, "Reliability plot data retrieved successfully"))
 }
 
+// @Summary List reliability plot components one page at a time
+// @Tags ReliabilityPlotComponent
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityPlotComponent [get]
 func (h *PlotHandler) list(w http.ResponseWriter, r *http.Request) {
 	page, err := web.QueryInt(r, "page", 1)
 	if err != nil {
@@ -99,6 +129,16 @@ func (h *PlotHandler) list(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary Show a single reliability plot component
+// @Tags ReliabilityPlotComponent
+// @Produce json
+// @Param rbdSystemId path string true "System id"
+// @Param reliabilityPlotComponentId query string true "Reliability plot component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityPlotComponent/{rbdSystemId} [get]
 func (h *PlotHandler) byId(w http.ResponseWriter, r *http.Request) {
 	row, err := h.service.Find(r.Context(), web.QueryString(r, "reliabilityPlotComponentId"))
 	if err != nil {
@@ -112,6 +152,16 @@ func (h *PlotHandler) byId(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(row, "Success"))
 }
 
+// @Summary Add a component to a reliability plot
+// @Tags ReliabilityPlotComponent
+// @Accept json
+// @Produce json
+// @Param request body domain.PlotCreate true "Reliability plot component to create"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityPlotComponent [post]
 func (h *PlotHandler) create(w http.ResponseWriter, r *http.Request) {
 	var request domain.PlotCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -137,6 +187,18 @@ func (h *PlotHandler) create(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusCreated, web.Created(request, "Data created successfully"))
 }
 
+// @Summary Change the component linked to a reliability plot entry
+// @Tags ReliabilityPlotComponent
+// @Accept json
+// @Produce json
+// @Param reliabilityPlotComponentId path string true "Reliability plot component id"
+// @Param request body domain.PlotUpdate true "New values for the reliability plot component"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityPlotComponent/{reliabilityPlotComponentId} [put]
 func (h *PlotHandler) update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "reliabilityPlotComponentId")
 	var request domain.PlotUpdate
@@ -164,6 +226,15 @@ func (h *PlotHandler) update(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Remove a component from a reliability plot
+// @Tags ReliabilityPlotComponent
+// @Produce json
+// @Param reliabilityPlotComponentId path string true "Reliability plot component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityPlotComponent/{reliabilityPlotComponentId} [delete]
 func (h *PlotHandler) remove(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "reliabilityPlotComponentId")
 	existing, err := h.service.Find(r.Context(), id)

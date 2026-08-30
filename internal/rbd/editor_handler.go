@@ -98,6 +98,18 @@ func respondEdgeError(w http.ResponseWriter, err error) {
 	web.Respond(w, http.StatusInternalServerError, web.ServerError("Internal server error: "+err.Error()+" | Inner:  | StackTrace: "))
 }
 
+// @Summary Save the canvas nodes of a hierarchy level in the system drawing
+// @Tags ReliabilityEditor
+// @Accept json
+// @Produce json
+// @Param hierarchyId query string true "Hierarchy id"
+// @Param request body []domain.DrawingNodeInput true "Nodes to store on the canvas"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/saveNodesByHierarchy [put]
 func (h *EditorHandler) saveNodesByHierarchy(w http.ResponseWriter, r *http.Request) {
 	inputs, ok := decodeNodes(w, r)
 	if !ok {
@@ -110,6 +122,18 @@ func (h *EditorHandler) saveNodesByHierarchy(w http.ResponseWriter, r *http.Requ
 	web.Respond(w, http.StatusOK, web.Success(inputs, "Drawings updated successfully."))
 }
 
+// @Summary Save the canvas nodes at the system level of the drawing
+// @Tags ReliabilityEditor
+// @Accept json
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Param request body []domain.DrawingNodeInput true "Nodes to store on the canvas"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/saveNodesByRbdSystem [put]
 func (h *EditorHandler) saveNodesBySystem(w http.ResponseWriter, r *http.Request) {
 	inputs, ok := decodeNodes(w, r)
 	if !ok {
@@ -122,6 +146,18 @@ func (h *EditorHandler) saveNodesBySystem(w http.ResponseWriter, r *http.Request
 	web.Respond(w, http.StatusOK, web.Success(inputs, "System level nodes updated successfully."))
 }
 
+// @Summary Save the canvas edges of a hierarchy level and refresh its calculation history
+// @Tags ReliabilityEditor
+// @Accept json
+// @Produce json
+// @Param hierarchyId query string true "Hierarchy id"
+// @Param request body []domain.EdgeInput true "Edges to store on the canvas"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/saveEdgesByHierarchy [put]
 func (h *EditorHandler) saveEdgesByHierarchy(w http.ResponseWriter, r *http.Request) {
 	inputs, ok := decodeEdges(w, r)
 	if !ok {
@@ -138,6 +174,18 @@ func (h *EditorHandler) saveEdgesByHierarchy(w http.ResponseWriter, r *http.Requ
 	web.Respond(w, http.StatusOK, web.Success(inputs, "Drawings updated successfully."))
 }
 
+// @Summary Save the canvas edges at the system level of the drawing
+// @Tags ReliabilityEditor
+// @Accept json
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Param request body []domain.EdgeInput true "Edges to store on the canvas"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/saveEdgesByRbdSystem [put]
 func (h *EditorHandler) saveEdgesBySystem(w http.ResponseWriter, r *http.Request) {
 	inputs, ok := decodeEdges(w, r)
 	if !ok {
@@ -150,6 +198,15 @@ func (h *EditorHandler) saveEdgesBySystem(w http.ResponseWriter, r *http.Request
 	web.Respond(w, http.StatusOK, web.Success(inputs, "System level edges updated successfully."))
 }
 
+// @Summary List the canvas nodes of a hierarchy level
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param hierarchyId query string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/getNodesByHierarchy [get]
 func (h *EditorHandler) nodesByHierarchy(w http.ResponseWriter, r *http.Request) {
 	hierarchyId := web.QueryString(r, "hierarchyId")
 	if strings.TrimSpace(hierarchyId) == "" {
@@ -164,6 +221,15 @@ func (h *EditorHandler) nodesByHierarchy(w http.ResponseWriter, r *http.Request)
 	web.Respond(w, http.StatusOK, web.Success(nodes, "Nodes retrieved successfully."))
 }
 
+// @Summary List the canvas nodes at the system level of the drawing
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/getNodesByRbdSystem [get]
 func (h *EditorHandler) nodesBySystem(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := web.QueryString(r, "rbdSystemId")
 	if strings.TrimSpace(rbdSystemId) == "" {
@@ -178,6 +244,15 @@ func (h *EditorHandler) nodesBySystem(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nodes, "Nodes retrieved successfully."))
 }
 
+// @Summary List the canvas edges of a hierarchy level
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param hierarchyId query string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/getEdgesByHierarchy [get]
 func (h *EditorHandler) edgesByHierarchy(w http.ResponseWriter, r *http.Request) {
 	hierarchyId := web.QueryString(r, "hierarchyId")
 	if strings.TrimSpace(hierarchyId) == "" {
@@ -192,6 +267,15 @@ func (h *EditorHandler) edgesByHierarchy(w http.ResponseWriter, r *http.Request)
 	web.Respond(w, http.StatusOK, web.Success(edges, "Edges retrieved successfully."))
 }
 
+// @Summary List the canvas edges at the system level of the drawing
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/rbdDrawing/getEdgesByRbdSystem [get]
 func (h *EditorHandler) edgesBySystem(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := web.QueryString(r, "rbdSystemId")
 	if strings.TrimSpace(rbdSystemId) == "" {

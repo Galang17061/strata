@@ -33,6 +33,16 @@ func (h *FailureHandler) Mount(router chi.Router) {
 	})
 }
 
+// @Summary Record failure events in the history of one or more components
+// @Tags ReliabilityEditor
+// @Accept json
+// @Produce json
+// @Param request body []domain.FailureEventCreate true "Failure events to record"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/failureEvent [post]
 func (h *FailureHandler) create(w http.ResponseWriter, r *http.Request) {
 	var inputs []domain.FailureEventCreate
 	if err := web.DecodeBody(r, &inputs); err != nil {
@@ -62,6 +72,18 @@ func (h *FailureHandler) create(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusCreated, web.Created(web.NonNil(inputs), "Data created successfully"))
 }
 
+// @Summary List failure event history one page at a time
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param systemComponentId query string false "System component id"
+// @Param search query string false "Search text"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/failureEvent [get]
 func (h *FailureHandler) list(w http.ResponseWriter, r *http.Request) {
 	page, err := web.QueryInt(r, "page", 1)
 	if err != nil {
@@ -82,6 +104,15 @@ func (h *FailureHandler) list(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "Success", meta))
 }
 
+// @Summary Delete a single failure event from the history
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param failureEventHistoryId path string true "Failure event history id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/failureEvent/{failureEventHistoryId} [delete]
 func (h *FailureHandler) remove(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "failureEventHistoryId")
 	event, err := h.failures.Find(r.Context(), id)
@@ -100,6 +131,15 @@ func (h *FailureHandler) remove(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary Delete every failure event recorded for a system component
+// @Tags ReliabilityEditor
+// @Produce json
+// @Param systemComponentId path string true "System component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/ReliabilityEditor/failureEvent/bySystemComponent/{systemComponentId} [delete]
 func (h *FailureHandler) removeAll(w http.ResponseWriter, r *http.Request) {
 	systemComponentId := chi.URLParam(r, "systemComponentId")
 	rows, err := h.failures.List(r.Context(), systemComponentId, "")
@@ -118,6 +158,15 @@ func (h *FailureHandler) removeAll(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "All failure events deleted successfully"))
 }
 
+// @Summary Recalculate the exponential failure rate of a component from its failure history
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "System component id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId}/exponential [put]
 func (h *FailureHandler) exponential(w http.ResponseWriter, r *http.Request) {
 	systemComponentId := chi.URLParam(r, "systemComponentId")
 	if strings.TrimSpace(systemComponentId) == "" {
@@ -136,6 +185,15 @@ func (h *FailureHandler) exponential(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, envelope)
 }
 
+// @Summary Create the initial exponential distribution entry for a component
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "System component id"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId}/exponential-parameter [post]
 func (h *FailureHandler) exponentialSeed(w http.ResponseWriter, r *http.Request) {
 	systemComponentId := chi.URLParam(r, "systemComponentId")
 	envelope, err := h.parameters.SeedExponential(r.Context(), systemComponentId, auth.CurrentUserName(r.Context()))

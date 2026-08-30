@@ -1,0 +1,5478 @@
+package docs
+
+import "github.com/swaggo/swag"
+
+const docTemplate = `{
+    "schemes": {{ marshal .Schemes }},
+    "swagger": "2.0",
+    "info": {
+        "description": "{{escape .Description}}",
+        "title": "{{.Title}}",
+        "contact": {},
+        "version": "{{.Version}}"
+    },
+    "host": "{{.Host}}",
+    "basePath": "{{.BasePath}}",
+    "paths": {
+        "/api/Auth/Login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign in with a username and password to obtain a bearer token",
+                "parameters": [
+                    {
+                        "description": "Credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign out of the current session",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Hierarchy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "List hierarchy levels with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "Create a subsystem level beneath a parent in a system",
+                "parameters": [
+                    {
+                        "description": "Subsystem level details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.HierarchyCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Hierarchy/parent/{parentId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "List the child hierarchy levels of a parent",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Parent hierarchy id",
+                        "name": "parentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Hierarchy/{hierarchyId}/can-add-component": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "Check whether components may be added to a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Hierarchy/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "Retrieve one hierarchy level by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "Update the details of a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to change",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.HierarchyUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hierarchy"
+                ],
+                "summary": "Delete a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "List components with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Register a new component",
+                "parameters": [
+                    {
+                        "description": "Component to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.MasterComponentCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Download all components as an Excel workbook",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent/import": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Import components from an uploaded Excel workbook",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Excel workbook with a .xlsx or .xls extension",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.UnsupportedMediaType"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent/recent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "List the three most recently added components",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent/template": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Download the blank Excel template used for component import",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterComponent/{componentId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Show one component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "componentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Update an existing component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "componentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated component fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.MasterComponentUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterComponent"
+                ],
+                "summary": "Remove a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "componentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterManufacturer": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterManufacturer"
+                ],
+                "summary": "List manufacturers with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterManufacturer"
+                ],
+                "summary": "Register a new manufacturer with an optional logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Manufacturer name",
+                        "name": "ManufacturerName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date until which the manufacturer is valid",
+                        "name": "ValidUntil",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Logo image",
+                        "name": "LogoImage",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.UnsupportedMediaType"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterManufacturer/{vendorId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterManufacturer"
+                ],
+                "summary": "Show one manufacturer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Manufacturer id",
+                        "name": "vendorId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterManufacturer"
+                ],
+                "summary": "Update an existing manufacturer and optionally replace its logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Manufacturer id",
+                        "name": "vendorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Manufacturer name",
+                        "name": "ManufacturerName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date until which the manufacturer is valid",
+                        "name": "ValidUntil",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Logo image",
+                        "name": "LogoImage",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.UnsupportedMediaType"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterManufacturer"
+                ],
+                "summary": "Remove a manufacturer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Manufacturer id",
+                        "name": "vendorId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "List projects with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "Register a new project",
+                "parameters": [
+                    {
+                        "description": "Project to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.MasterProjectCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject/allSystem": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "List every system across all projects with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject/high-reliability": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "List the project systems with the highest reliability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of systems to return",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject/recent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "List the three most recently added project systems",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject/{projectId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "Show one project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project id",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "Update an existing project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project id",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated project fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.MasterProjectUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterProject/{projectId}/details": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterProject"
+                ],
+                "summary": "Show a project together with its systems and related details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project id",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/createRbdSystem": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Create a system with its hierarchy levels and components",
+                "parameters": [
+                    {
+                        "description": "System name, project and hierarchy tree",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.SystemCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/getRbdTreeView/{rbdSystemId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Retrieve a system together with its full hierarchy tree",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "System name",
+                        "name": "systemName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/hierarchy/{hierarchyId}/input-parameters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Retrieve the component input parameters of a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/hierarchy/{hierarchyId}/plot-graphic": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Retrieve the component input and output values used to plot a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/systemByProject": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "List the systems that belong to one project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project id",
+                        "name": "projectId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/systemList": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "List every reliability block diagram system in Strata",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/updateRbdTreeView/{rbdSystemId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Replace the hierarchy tree of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "System name, project and hierarchy tree",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.SystemUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/MasterSystem/{rbdSystemId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Update a system and its hierarchy tree",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "System name, project and hierarchy tree",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.SystemCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MasterSystem"
+                ],
+                "summary": "Delete a system and everything beneath it",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/failureEvent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "List failure event history one page at a time",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Record failure events in the history of one or more components",
+                "parameters": [
+                    {
+                        "description": "Failure events to record",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.FailureEventCreate"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/failureEvent/bySystemComponent/{systemComponentId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Delete every failure event recorded for a system component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/failureEvent/{failureEventHistoryId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Delete a single failure event from the history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Failure event history id",
+                        "name": "failureEventHistoryId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/getEdgesByHierarchy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "List the canvas edges of a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/getEdgesByRbdSystem": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "List the canvas edges at the system level of the drawing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/getNodesByHierarchy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "List the canvas nodes of a hierarchy level",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/getNodesByRbdSystem": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "List the canvas nodes at the system level of the drawing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/saveEdgesByHierarchy": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Save the canvas edges of a hierarchy level and refresh its calculation history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Edges to store on the canvas",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.EdgeInput"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/saveEdgesByRbdSystem": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Save the canvas edges at the system level of the drawing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Edges to store on the canvas",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.EdgeInput"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/saveNodesByHierarchy": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Save the canvas nodes of a hierarchy level in the system drawing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Nodes to store on the canvas",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.DrawingNodeInput"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityEditor/rbdDrawing/saveNodesByRbdSystem": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityEditor"
+                ],
+                "summary": "Save the canvas nodes at the system level of the drawing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "Nodes to store on the canvas",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.DrawingNodeInput"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityPlotComponent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityPlotComponent"
+                ],
+                "summary": "List reliability plot components one page at a time",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityPlotComponent"
+                ],
+                "summary": "Add a component to a reliability plot",
+                "parameters": [
+                    {
+                        "description": "Reliability plot component to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.PlotCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityPlotComponent/{rbdSystemId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityPlotComponent"
+                ],
+                "summary": "Show a single reliability plot component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reliability plot component id",
+                        "name": "reliabilityPlotComponentId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityPlotComponent/{reliabilityPlotComponentId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityPlotComponent"
+                ],
+                "summary": "Change the component linked to a reliability plot entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reliability plot component id",
+                        "name": "reliabilityPlotComponentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New values for the reliability plot component",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.PlotUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityPlotComponent"
+                ],
+                "summary": "Remove a component from a reliability plot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reliability plot component id",
+                        "name": "reliabilityPlotComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/hierarchy/{hierarchyId}/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "List the reliability calculation history of a hierarchy level one page at a time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Field to sort by",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/hierarchy/{hierarchyId}/reliability": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Calculate the reliability of a hierarchy level from its block diagram",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hierarchy id",
+                        "name": "hierarchyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/rbdSystem/{rbdSystemId}/reliability-total": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Calculate the total reliability of a system across its hierarchy levels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/reliability-history/{historyId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Delete one entry from the reliability calculation history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Calculation history id",
+                        "name": "historyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/reliabilityPlot": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Get the reliability plot time series of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/update-running-hours": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Update the running hours used to evaluate the reliability of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Running hours, zero or more",
+                        "name": "runningHours",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ReliabilityTotal/updateFormula": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Store the reliability formula of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reliability formula",
+                        "name": "formula",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Role": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "List roles one page at a time",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Create a new role",
+                "parameters": [
+                    {
+                        "description": "Role to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.RoleCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Role/{RoleId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Show one role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role id",
+                        "name": "RoleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Update an existing role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role id",
+                        "name": "RoleId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated role fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.RoleCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "Remove a role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role id",
+                        "name": "RoleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Show the settings endpoint placeholder",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Add a component beneath a hierarchy level",
+                "parameters": [
+                    {
+                        "description": "Parent hierarchy id and component name",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.ComponentSimpleCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "List component properties with optional search, sorting and paging",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Retrieve the properties of one component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Update the properties of a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Component properties to change",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.ComponentDetailUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Delete a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/exponential": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Recalculate the exponential failure rate of a component from its failure history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/exponential-parameter": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Create the initial exponential distribution entry for a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/weibull": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Recalculate the Weibull shape and scale of a component from its failure history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/weibull-parameter": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Create the initial Weibull shape and scale entry for a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/weibull-parameters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "List the Weibull shape and scale values of a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemMonitoring/GetDataComponent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemMonitoring"
+                ],
+                "summary": "List monitored components with their running hours and reliability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemMonitoring/GetRBDCalculation": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemMonitoring"
+                ],
+                "summary": "Retrieve the reliability calculation summary across all systems",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sortBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction, asc or desc",
+                        "name": "sortOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "List users one page at a time",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/ChangePassword": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Change the password of a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "UserId",
+                        "in": "query"
+                    },
+                    {
+                        "description": "New password and its confirmation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.PasswordUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/ChangePasswordAdmin": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Reset the password of a user as an administrator",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "UserId",
+                        "in": "query"
+                    },
+                    {
+                        "description": "New password and its confirmation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.PasswordUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/DetailUser": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Show the details of one user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "IdUser",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Show the profile of the signed-in user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/{UserId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update the profile of an existing user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "UserId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated user fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.UserUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Remove a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "UserId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/UserAccess": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "List user access entries one page at a time",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "Grant a user access to a module",
+                "parameters": [
+                    {
+                        "description": "Access entry to create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.UserAccessCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/UserAccess/CreateOrUpdateMany": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "Create or update several access entries in one call",
+                "parameters": [
+                    {
+                        "description": "Access entries to create or update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.UserAccessCreate"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/UserAccess/{Id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "Update an access entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access entry id",
+                        "name": "Id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated access fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.UserAccessEdit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "Remove an access entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access entry id",
+                        "name": "Id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ExceptionBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/UserAccess/{UserId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAccess"
+                ],
+                "summary": "List the access entries granted to one user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "UserId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.ValidationProblem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_Galang17061_strata-api_internal_domain.ComponentDetailUpdate": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "activeComponent": {
+                    "type": "integer"
+                },
+                "componentName": {
+                    "type": "string"
+                },
+                "componentTagNumber": {
+                    "type": "string"
+                },
+                "connectionToId": {
+                    "type": "string"
+                },
+                "connectionType": {
+                    "type": "string"
+                },
+                "distributionType": {
+                    "type": "string"
+                },
+                "failureRate": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "formulaCode": {
+                    "type": "string"
+                },
+                "idNode": {
+                    "type": "string"
+                },
+                "mtbf": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "positionX": {
+                    "type": "string"
+                },
+                "positionY": {
+                    "type": "string"
+                },
+                "regresi": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "reliabilityValue": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "runningHours": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "scaleParameter": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "shapeParameter": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "sourcePosition": {
+                    "type": "string"
+                },
+                "targetPosition": {
+                    "type": "string"
+                },
+                "totalComponent": {
+                    "type": "integer"
+                },
+                "vendor": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.ComponentInput": {
+            "type": "object",
+            "properties": {
+                "activeComponent": {
+                    "type": "integer"
+                },
+                "componentName": {
+                    "type": "string"
+                },
+                "connectionType": {
+                    "type": "string"
+                },
+                "formulaCode": {
+                    "type": "string"
+                },
+                "systemComponentId": {
+                    "type": "string"
+                },
+                "totalComponent": {
+                    "type": "integer"
+                },
+                "vendor": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.ComponentSimpleCreate": {
+            "type": "object",
+            "properties": {
+                "componentName": {
+                    "type": "string"
+                },
+                "componentTagNumber": {
+                    "type": "string"
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.DateTime": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.DrawingNodeInput": {
+            "type": "object",
+            "properties": {
+                "connectionType": {
+                    "type": "string"
+                },
+                "idNode": {
+                    "type": "string"
+                },
+                "positionX": {
+                    "type": "string"
+                },
+                "positionY": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.EdgeInput": {
+            "type": "object",
+            "properties": {
+                "idEdge": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.FailureEventCreate": {
+            "type": "object",
+            "properties": {
+                "failureDate": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.DateTime"
+                },
+                "failureEventId": {
+                    "type": "string"
+                },
+                "runningHours": {
+                    "type": "integer"
+                },
+                "systemComponentId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.HierarchyCreate": {
+            "type": "object",
+            "properties": {
+                "connectionType": {
+                    "type": "string"
+                },
+                "formula": {
+                    "type": "string"
+                },
+                "formulaCode": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "positionX": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "positionY": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "runningHours": {
+                    "type": "integer"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "subSystemName": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.HierarchyUpdate": {
+            "type": "object",
+            "properties": {
+                "connectionType": {
+                    "type": "string"
+                },
+                "formula": {
+                    "type": "string"
+                },
+                "formulaCode": {
+                    "type": "string"
+                },
+                "positionX": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "positionY": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "realibilityValue": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "runningHours": {
+                    "type": "integer"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "subSystemName": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.MasterComponentCreate": {
+            "type": "object",
+            "properties": {
+                "compatibility": {
+                    "type": "string"
+                },
+                "componentName": {
+                    "type": "string"
+                },
+                "cost": {
+                    "type": "string"
+                },
+                "failureRate": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "serialNumber": {
+                    "type": "string"
+                },
+                "vendorId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.MasterComponentUpdate": {
+            "type": "object",
+            "properties": {
+                "compatibility": {
+                    "type": "string"
+                },
+                "componentName": {
+                    "type": "string"
+                },
+                "cost": {
+                    "type": "string"
+                },
+                "failureRate": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "serialNumber": {
+                    "type": "string"
+                },
+                "vendorId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.MasterProjectCreate": {
+            "type": "object",
+            "properties": {
+                "projectId": {
+                    "type": "string"
+                },
+                "projectName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.MasterProjectUpdate": {
+            "type": "object",
+            "properties": {
+                "projectName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.Number": {
+            "type": "object",
+            "properties": {
+                "decimal.Decimal": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.PasswordUpdate": {
+            "type": "object",
+            "properties": {
+                "passwordNew": {
+                    "type": "string"
+                },
+                "reconfirmPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.PlotCreate": {
+            "type": "object",
+            "properties": {
+                "reliabilityComp": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.Number"
+                },
+                "reliabilityPlotId": {
+                    "type": "string"
+                },
+                "systemComponentId": {
+                    "type": "string"
+                },
+                "timeT": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.PlotUpdate": {
+            "type": "object",
+            "properties": {
+                "reliabilityComp": {
+                    "type": "integer"
+                },
+                "systemComponentId": {
+                    "type": "string"
+                },
+                "timeT": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.RoleCreate": {
+            "type": "object",
+            "properties": {
+                "roleName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.SystemCreate": {
+            "type": "object",
+            "properties": {
+                "hierarchy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.TreeInput"
+                    }
+                },
+                "projectId": {
+                    "type": "string"
+                },
+                "systemName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.SystemUpdate": {
+            "type": "object",
+            "properties": {
+                "hierarchy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.TreeInput"
+                    }
+                },
+                "projectId": {
+                    "type": "string"
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "systemName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.TreeInput": {
+            "type": "object",
+            "properties": {
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.ComponentInput"
+                    }
+                },
+                "connectionType": {
+                    "type": "string"
+                },
+                "formulaCode": {
+                    "type": "string"
+                },
+                "hierarchy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.TreeInput"
+                    }
+                },
+                "hierarchyId": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.UserAccessCreate": {
+            "type": "object",
+            "properties": {
+                "is_add": {
+                    "type": "boolean"
+                },
+                "is_delete": {
+                    "type": "boolean"
+                },
+                "is_download": {
+                    "type": "boolean"
+                },
+                "is_edit": {
+                    "type": "boolean"
+                },
+                "is_view": {
+                    "type": "boolean"
+                },
+                "modul": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.UserAccessEdit": {
+            "type": "object",
+            "properties": {
+                "is_add": {
+                    "type": "boolean"
+                },
+                "is_delete": {
+                    "type": "boolean"
+                },
+                "is_download": {
+                    "type": "boolean"
+                },
+                "is_edit": {
+                    "type": "boolean"
+                },
+                "is_view": {
+                    "type": "boolean"
+                },
+                "modul": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.UserCreate": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.UserUpdate": {
+            "type": "object",
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_web.Envelope": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Meta"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_web.ExceptionBody": {
+            "type": "object",
+            "properties": {
+                "customError": {},
+                "errors": {},
+                "isModelValidatonError": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "referenceDocumentLink": {},
+                "referenceErrorCode": {},
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_web.Meta": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "hasNextPage": {
+                    "type": "boolean"
+                },
+                "hasPreviousPage": {
+                    "type": "boolean"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "totalData": {
+                    "type": "integer"
+                },
+                "totalPage": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_web.UnsupportedMediaType": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "traceId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_web.ValidationProblem": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "traceId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}`
+
+var SwaggerInfo = &swag.Spec{
+	Version:          "1.0",
+	Host:             "",
+	BasePath:         "/",
+	Schemes:          []string{},
+	Title:            "Strata API",
+	Description:      "Reliability block diagram service: projects, systems, hierarchies, components, failure history, and reliability figures over running hours",
+	InfoInstanceName: "swagger",
+	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
+}
+
+func init() {
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+}

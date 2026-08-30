@@ -35,6 +35,17 @@ func (h *TotalHandler) AfterEdgeSave(r *http.Request, hierarchyId string) {
 	h.service.SaveHistoryAfterEdgeSave(r.Context(), hierarchyId, auth.CurrentUserName(r.Context()))
 }
 
+// @Summary Store the reliability formula of a system
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param rbdSystemId query string true "System id"
+// @Param formula query string true "Reliability formula"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/updateFormula [put]
 func (h *TotalHandler) updateFormula(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := web.QueryString(r, "rbdSystemId")
 	formula := web.QueryString(r, "formula")
@@ -69,6 +80,15 @@ func respondByCode(w http.ResponseWriter, envelope web.Envelope) {
 	}
 }
 
+// @Summary Calculate the reliability of a hierarchy level from its block diagram
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param hierarchyId path string true "Hierarchy id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/hierarchy/{hierarchyId}/reliability [get]
 func (h *TotalHandler) hierarchyReliability(w http.ResponseWriter, r *http.Request) {
 	hierarchyId := chi.URLParam(r, "hierarchyId")
 	if strings.TrimSpace(hierarchyId) == "" {
@@ -78,6 +98,15 @@ func (h *TotalHandler) hierarchyReliability(w http.ResponseWriter, r *http.Reque
 	respondByCode(w, h.service.CalculateHierarchy(WithUser(r.Context(), auth.CurrentUserName(r.Context())), hierarchyId))
 }
 
+// @Summary Calculate the total reliability of a system across its hierarchy levels
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param rbdSystemId path string true "System id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/rbdSystem/{rbdSystemId}/reliability-total [get]
 func (h *TotalHandler) systemTotal(w http.ResponseWriter, r *http.Request) {
 	rbdSystemId := chi.URLParam(r, "rbdSystemId")
 	if strings.TrimSpace(rbdSystemId) == "" {
@@ -87,6 +116,20 @@ func (h *TotalHandler) systemTotal(w http.ResponseWriter, r *http.Request) {
 	respondByCode(w, h.service.SystemTotal(r.Context(), rbdSystemId))
 }
 
+// @Summary List the reliability calculation history of a hierarchy level one page at a time
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param hierarchyId path string true "Hierarchy id"
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param sortBy query string false "Field to sort by"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/hierarchy/{hierarchyId}/history [get]
 func (h *TotalHandler) history(w http.ResponseWriter, r *http.Request) {
 	hierarchyId := chi.URLParam(r, "hierarchyId")
 	page, err := web.QueryInt(r, "page", 1)
@@ -111,6 +154,16 @@ func (h *TotalHandler) history(w http.ResponseWriter, r *http.Request) {
 	web.RespondEnvelope(w, envelope)
 }
 
+// @Summary Delete one entry from the reliability calculation history
+// @Tags ReliabilityTotal
+// @Produce json
+// @Param historyId path string true "Calculation history id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/ReliabilityTotal/reliability-history/{historyId} [delete]
 func (h *TotalHandler) deleteHistory(w http.ResponseWriter, r *http.Request) {
 	historyId := chi.URLParam(r, "historyId")
 	if strings.TrimSpace(historyId) == "" {

@@ -86,6 +86,19 @@ func respondList[T any](w http.ResponseWriter, items []T, query listQuery, messa
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(page, message, meta))
 }
 
+// @Summary List manufacturers with optional search, sorting and paging
+// @Tags MasterManufacturer
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Field to sort by"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterManufacturer [get]
 func (h *Handler) listManufacturers(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -99,6 +112,15 @@ func (h *Handler) listManufacturers(w http.ResponseWriter, r *http.Request) {
 	respondList(w, rows, query, "Success")
 }
 
+// @Summary Show one manufacturer
+// @Tags MasterManufacturer
+// @Produce json
+// @Param vendorId path string true "Manufacturer id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterManufacturer/{vendorId} [get]
 func (h *Handler) manufacturerById(w http.ResponseWriter, r *http.Request) {
 	row, err := h.service.FindManufacturer(r.Context(), chi.URLParam(r, "vendorId"))
 	if err != nil {
@@ -163,6 +185,20 @@ func readManufacturerForm(w http.ResponseWriter, r *http.Request) (manufacturerI
 	return input, true
 }
 
+// @Summary Register a new manufacturer with an optional logo
+// @Tags MasterManufacturer
+// @Accept multipart/form-data
+// @Produce json
+// @Param ManufacturerName formData string false "Manufacturer name"
+// @Param ValidUntil formData string false "Date until which the manufacturer is valid"
+// @Param LogoImage formData file false "Logo image"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.Envelope
+// @Failure 415 {object} web.UnsupportedMediaType
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterManufacturer [post]
 func (h *Handler) createManufacturer(w http.ResponseWriter, r *http.Request) {
 	input, ok := readManufacturerForm(w, r)
 	if !ok {
@@ -180,6 +216,21 @@ func (h *Handler) createManufacturer(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(input.echo, "Data successfully"))
 }
 
+// @Summary Update an existing manufacturer and optionally replace its logo
+// @Tags MasterManufacturer
+// @Accept multipart/form-data
+// @Produce json
+// @Param vendorId path string true "Manufacturer id"
+// @Param ManufacturerName formData string false "Manufacturer name"
+// @Param ValidUntil formData string false "Date until which the manufacturer is valid"
+// @Param LogoImage formData file false "Logo image"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 415 {object} web.UnsupportedMediaType
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterManufacturer/{vendorId} [put]
 func (h *Handler) updateManufacturer(w http.ResponseWriter, r *http.Request) {
 	vendorId := chi.URLParam(r, "vendorId")
 	input, ok := readManufacturerForm(w, r)
@@ -202,6 +253,15 @@ func (h *Handler) updateManufacturer(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(input.echo, "Data updated successfully"))
 }
 
+// @Summary Remove a manufacturer
+// @Tags MasterManufacturer
+// @Produce json
+// @Param vendorId path string true "Manufacturer id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterManufacturer/{vendorId} [delete]
 func (h *Handler) deleteManufacturer(w http.ResponseWriter, r *http.Request) {
 	vendorId := chi.URLParam(r, "vendorId")
 	existing, err := h.service.FindManufacturer(r.Context(), vendorId)
@@ -220,6 +280,19 @@ func (h *Handler) deleteManufacturer(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary List components with optional search, sorting and paging
+// @Tags MasterComponent
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Field to sort by"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent [get]
 func (h *Handler) listComponents(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -233,6 +306,15 @@ func (h *Handler) listComponents(w http.ResponseWriter, r *http.Request) {
 	respondList(w, rows, query, "Success")
 }
 
+// @Summary Show one component
+// @Tags MasterComponent
+// @Produce json
+// @Param componentId path string true "Component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent/{componentId} [get]
 func (h *Handler) componentById(w http.ResponseWriter, r *http.Request) {
 	row, err := h.service.FindComponent(r.Context(), chi.URLParam(r, "componentId"))
 	if err != nil {
@@ -246,6 +328,17 @@ func (h *Handler) componentById(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(row, "Success"))
 }
 
+// @Summary Register a new component
+// @Tags MasterComponent
+// @Accept json
+// @Produce json
+// @Param request body domain.MasterComponentCreate true "Component to create"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent [post]
 func (h *Handler) createComponent(w http.ResponseWriter, r *http.Request) {
 	var request domain.MasterComponentCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -268,6 +361,19 @@ func (h *Handler) createComponent(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data created successfully"))
 }
 
+// @Summary Update an existing component
+// @Tags MasterComponent
+// @Accept json
+// @Produce json
+// @Param componentId path string true "Component id"
+// @Param request body domain.MasterComponentUpdate true "Updated component fields"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent/{componentId} [put]
 func (h *Handler) updateComponent(w http.ResponseWriter, r *http.Request) {
 	componentId := chi.URLParam(r, "componentId")
 	var request domain.MasterComponentUpdate
@@ -300,6 +406,15 @@ func (h *Handler) updateComponent(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary Remove a component
+// @Tags MasterComponent
+// @Produce json
+// @Param componentId path string true "Component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent/{componentId} [delete]
 func (h *Handler) deleteComponent(w http.ResponseWriter, r *http.Request) {
 	componentId := chi.URLParam(r, "componentId")
 	existing, err := h.service.FindComponent(r.Context(), componentId)
@@ -318,6 +433,17 @@ func (h *Handler) deleteComponent(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(nil, "Data deleted successfully"))
 }
 
+// @Summary Import components from an uploaded Excel workbook
+// @Tags MasterComponent
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Excel workbook with a .xlsx or .xls extension"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 415 {object} web.UnsupportedMediaType
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/MasterComponent/import [post]
 func (h *Handler) importComponents(w http.ResponseWriter, r *http.Request) {
 	form, err := web.ParseForm(r)
 	if err != nil {
@@ -352,6 +478,13 @@ func (h *Handler) importComponents(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(result, "Data imported successfully. "+itoa(result.SuccessCount)+" new records, "+itoa(result.UpdatedCount)+" updated records."))
 }
 
+// @Summary Download all components as an Excel workbook
+// @Tags MasterComponent
+// @Produce application/octet-stream
+// @Success 200 {file} file
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/MasterComponent/export [get]
 func (h *Handler) exportComponents(w http.ResponseWriter, r *http.Request) {
 	content, err := h.service.ExportWorkbook(r.Context())
 	if err != nil {
@@ -363,6 +496,13 @@ func (h *Handler) exportComponents(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(content)
 }
 
+// @Summary Download the blank Excel template used for component import
+// @Tags MasterComponent
+// @Produce application/octet-stream
+// @Success 200 {file} file
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/MasterComponent/template [get]
 func (h *Handler) template(w http.ResponseWriter, r *http.Request) {
 	content, err := h.service.TemplateWorkbook()
 	if err != nil {
@@ -374,6 +514,13 @@ func (h *Handler) template(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(content)
 }
 
+// @Summary List the three most recently added components
+// @Tags MasterComponent
+// @Produce json
+// @Success 200 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterComponent/recent [get]
 func (h *Handler) recentComponents(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.service.RecentComponents(r.Context(), 3)
 	if err != nil {
@@ -383,6 +530,19 @@ func (h *Handler) recentComponents(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(rows, "Recent components retrieved successfully"))
 }
 
+// @Summary List projects with optional search, sorting and paging
+// @Tags MasterProject
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Field to sort by"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject [get]
 func (h *Handler) listProjects(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -396,6 +556,19 @@ func (h *Handler) listProjects(w http.ResponseWriter, r *http.Request) {
 	respondList(w, rows, query, "Success")
 }
 
+// @Summary List every system across all projects with optional search, sorting and paging
+// @Tags MasterProject
+// @Produce json
+// @Param page query int false "Page number"
+// @Param pageSize query int false "Items per page"
+// @Param search query string false "Search text"
+// @Param sortBy query string false "Field to sort by"
+// @Param sortOrder query string false "Sort direction, asc or desc"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/allSystem [get]
 func (h *Handler) listProjectSystems(w http.ResponseWriter, r *http.Request) {
 	query, ok := readListQuery(w, r)
 	if !ok {
@@ -409,6 +582,15 @@ func (h *Handler) listProjectSystems(w http.ResponseWriter, r *http.Request) {
 	respondList(w, rows, query, "Success")
 }
 
+// @Summary Show one project
+// @Tags MasterProject
+// @Produce json
+// @Param projectId path string true "Project id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/{projectId} [get]
 func (h *Handler) projectById(w http.ResponseWriter, r *http.Request) {
 	row, err := h.service.FindProject(r.Context(), chi.URLParam(r, "projectId"))
 	if err != nil {
@@ -422,6 +604,15 @@ func (h *Handler) projectById(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(row, "Success"))
 }
 
+// @Summary Show a project together with its systems and related details
+// @Tags MasterProject
+// @Produce json
+// @Param projectId path string true "Project id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/{projectId}/details [get]
 func (h *Handler) projectDetails(w http.ResponseWriter, r *http.Request) {
 	detail, err := h.service.ProjectDetail(r.Context(), chi.URLParam(r, "projectId"))
 	if err != nil {
@@ -435,6 +626,16 @@ func (h *Handler) projectDetails(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(detail, "Success"))
 }
 
+// @Summary Register a new project
+// @Tags MasterProject
+// @Accept json
+// @Produce json
+// @Param request body domain.MasterProjectCreate true "Project to create"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject [post]
 func (h *Handler) createProject(w http.ResponseWriter, r *http.Request) {
 	var request domain.MasterProjectCreate
 	if err := web.DecodeBody(r, &request); err != nil {
@@ -453,6 +654,18 @@ func (h *Handler) createProject(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusCreated, web.Created(request, "Data created successfully"))
 }
 
+// @Summary Update an existing project
+// @Tags MasterProject
+// @Accept json
+// @Produce json
+// @Param projectId path string true "Project id"
+// @Param request body domain.MasterProjectUpdate true "Updated project fields"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/{projectId} [put]
 func (h *Handler) updateProject(w http.ResponseWriter, r *http.Request) {
 	projectId := chi.URLParam(r, "projectId")
 	var request domain.MasterProjectUpdate
@@ -480,6 +693,13 @@ func (h *Handler) updateProject(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(request, "Data updated successfully"))
 }
 
+// @Summary List the three most recently added project systems
+// @Tags MasterProject
+// @Produce json
+// @Success 200 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/recent [get]
 func (h *Handler) recentProjects(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.service.RecentProjectSystems(r.Context(), 3)
 	if err != nil {
@@ -489,6 +709,15 @@ func (h *Handler) recentProjects(w http.ResponseWriter, r *http.Request) {
 	web.Respond(w, http.StatusOK, web.Success(rows, "Success"))
 }
 
+// @Summary List the project systems with the highest reliability
+// @Tags MasterProject
+// @Produce json
+// @Param count query int false "Maximum number of systems to return"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/MasterProject/high-reliability [get]
 func (h *Handler) highReliabilityProjects(w http.ResponseWriter, r *http.Request) {
 	count, err := web.QueryInt(r, "count", 10)
 	if err != nil {
