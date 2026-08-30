@@ -68,7 +68,7 @@ func (s *PlotService) UpdateRunningHours(ctx context.Context, rbdSystemId string
 			return err
 		}
 	}
-	return nil
+	return s.store.TouchSystem(ctx, rbdSystemId)
 }
 
 func (s *PlotService) replot(ctx context.Context, component domain.SystemComponentProperties, runningHours decimal.Decimal, times []int, currentUser string) error {
