@@ -16,6 +16,7 @@ type CalculationUpdate struct {
 	ReliabilityValue *Number `json:"reliabilityValue"`
 	Mtbf             *Number `json:"mtbf"`
 	Regresi          *Number `json:"regresi"`
+	AllowedFailures  *int    `json:"allowedFailures"`
 }
 
 type PoissonParameterView struct {

@@ -140,6 +140,7 @@ func calculationView(c domain.SystemComponentProperties, includeRunningHours, in
 		ShapeParameter:   c.ShapeParameter,
 		ReliabilityValue: c.ReliabilityValue,
 		Mtbf:             c.Mtbf,
+		AllowedFailures:  c.AllowedFailures,
 	}
 	if includeRunningHours {
 		view.RunningHours = c.RunningHours
