@@ -37,6 +37,14 @@ func TestComponentReliabilityPicksDistribution(t *testing.T) {
 	assert.True(t, componentReliability(component("series", 1, 1, "Weibull", "10", "", "", "")).IsZero())
 }
 
+func TestComponentReliabilityHonoursFaultAllowance(t *testing.T) {
+	tolerant := component("series", 1, 1, "Poisson", "8000", "0.00000851", "", "")
+	assert.Equal(t, "0.934185735728881", domain.NewNumber(componentReliability(tolerant)).Text())
+	tolerant.AllowedFailures = domain.IntPtr(2)
+	assert.Equal(t, "0.999950022998105", domain.NewNumber(componentReliability(tolerant)).Text())
+	assert.True(t, componentReliability(component("series", 1, 1, "Poisson", "8000", "", "", "")).IsZero())
+}
+
 func TestAdjustedReliabilityFollowsConnectionRules(t *testing.T) {
 	nine := decimal.RequireFromString("0.9")
 	series, err := adjustedReliability(component("series", 3, 3, "", "", "", "", ""), nine)
