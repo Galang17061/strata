@@ -38,6 +38,12 @@ func plotReliability(component domain.SystemComponentProperties, hours decimal.D
 		}
 		return reliability.ExponentialFromDecimals(component.FailureRate.Decimal, hours), nil
 	}
+	if domain.Deref(component.DistributionType) == "Poisson" {
+		if component.FailureRate == nil {
+			return decimal.Zero, errors.New("Nullable object must have a value.")
+		}
+		return reliability.PoissonFromFloats(component.FailureRate.Decimal, hours, domain.DerefInt(component.AllowedFailures, 0)), nil
+	}
 	if component.ScaleParameter == nil || component.ShapeParameter == nil {
 		return decimal.Zero, errors.New("Nullable object must have a value.")
 	}
