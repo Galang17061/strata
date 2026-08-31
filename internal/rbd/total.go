@@ -77,6 +77,9 @@ func componentReliability(component domain.SystemComponentProperties) decimal.De
 	exponential := func() decimal.Decimal {
 		return reliability.ExponentialFromFloats(component.FailureRate.Decimal, component.RunningHours.Decimal)
 	}
+	poisson := func() decimal.Decimal {
+		return reliability.PoissonFromFloats(component.FailureRate.Decimal, component.RunningHours.Decimal, domain.DerefInt(component.AllowedFailures, 0))
+	}
 	switch distribution {
 	case "weibull":
 		if component.ScaleParameter == nil || component.ShapeParameter == nil {
@@ -88,6 +91,11 @@ func componentReliability(component domain.SystemComponentProperties) decimal.De
 			return decimal.Zero
 		}
 		return exponential()
+	case "poisson":
+		if component.FailureRate == nil || component.FailureRate.Decimal.Sign() <= 0 {
+			return decimal.Zero
+		}
+		return poisson()
 	default:
 		if component.ScaleParameter != nil && component.ShapeParameter != nil {
 			return weibull()
