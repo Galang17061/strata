@@ -18,6 +18,17 @@ type CalculationUpdate struct {
 	Regresi          *Number `json:"regresi"`
 }
 
+type PoissonParameterView struct {
+	PoissonParameterId string    `json:"poissonParameterId"`
+	SystemComponentId  string    `json:"systemComponentId"`
+	FailureTime        *Number   `json:"failureTime"`
+	FailureRate        *Number   `json:"failureRate"`
+	AllowedFailures    *int      `json:"allowedFailures"`
+	CreatedAt          *DateTime `json:"createdAt"`
+	UpdatedAt          *DateTime `json:"updatedAt"`
+	TotalReliability   *Number   `json:"totalReliability"`
+}
+
 type WeibullParameterView struct {
 	WeibullParameterId string    `json:"weibullParameterId"`
 	SystemComponentId  string    `json:"systemComponentId"`

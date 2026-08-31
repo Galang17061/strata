@@ -21,8 +21,26 @@ func NewPoissonHandler(parameters *ParameterService) *PoissonHandler {
 func (h *PoissonHandler) Mount(router chi.Router) {
 	router.Group(func(protected chi.Router) {
 		protected.Use(auth.Require)
+		protected.Get("/api/SystemComponentProperties/{systemComponentId}/poisson-parameters", h.list)
 		protected.Post("/api/SystemComponentProperties/{systemComponentId}/poisson-parameter", h.seed)
 	})
+}
+
+// @Summary List the Poisson rate entries of a component
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "System component id"
+// @Success 200 {object} web.Envelope
+// @Failure 500 {string} string
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId}/poisson-parameters [get]
+func (h *PoissonHandler) list(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.parameters.PoissonViews(r.Context(), chi.URLParam(r, "systemComponentId"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(rows, "Poisson parameters retrieved successfully"))
 }
 
 // @Summary Create the initial Poisson rate entries for a component from its failure history
