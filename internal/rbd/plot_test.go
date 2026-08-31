@@ -33,3 +33,21 @@ func TestPlotReliabilityUsesStoredDistributionCase(t *testing.T) {
 	_, err = plotReliability(component("series", 1, 1, "exponential", "8000", "0.1", "", ""), decimal.NewFromInt(1))
 	assert.Error(t, err)
 }
+
+func TestPlotReliabilityFollowsTheFaultAllowance(t *testing.T) {
+	tolerant := component("series", 1, 1, "Poisson", "8000", "0.00000851", "", "")
+	value, err := plotReliability(tolerant, decimal.NewFromInt(8000))
+	require.NoError(t, err)
+	assert.Equal(t, "0.934185735728881", domain.NewNumber(value).Text())
+	tolerant.AllowedFailures = domain.IntPtr(2)
+	value, err = plotReliability(tolerant, decimal.NewFromInt(8000))
+	require.NoError(t, err)
+	assert.Equal(t, "0.999950022998105", domain.NewNumber(value).Text())
+	_, err = plotReliability(component("series", 1, 1, "Poisson", "8000", "", "", ""), decimal.NewFromInt(1))
+	assert.Error(t, err)
+}
+
+func TestPoissonEventRateCountsFaultsOverExposure(t *testing.T) {
+	assert.Equal(t, 0.001, poissonEventRate(2, 2000))
+	assert.Equal(t, 0.0, poissonEventRate(3, 0))
+}
