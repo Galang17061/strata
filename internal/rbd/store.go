@@ -291,6 +291,7 @@ func (s *Store) DeleteComponentDependents(ctx context.Context, ids []string) err
 		`DELETE FROM dbo.FailureEventHistory WHERE system_component_id IN (?)`,
 		`DELETE FROM dbo.ExponentialParameter WHERE system_component_id IN (?)`,
 		`DELETE FROM dbo.WeibullParameter WHERE system_component_id IN (?)`,
+		`DELETE FROM dbo.PoissonParameter WHERE system_component_id IN (?)`,
 		`DELETE FROM dbo.ReliabilityPlotComponent WHERE system_component_id IN (?)`,
 	}
 	for _, statement := range statements {

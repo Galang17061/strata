@@ -12,7 +12,9 @@ const FailureEventColumns = `failure_event_id, system_component_id, failure_date
 
 const WeibullColumns = `weibull_parameter_id, system_component_id, failure_event_hours, n, freq_f, x, y, created_at, updated_at, created_by, updated_by`
 
-const ExponentialColumns = `exponential_parameter_id, system_component_id, failure_event_hours, n, fregf, f_t_median_rank, r_t, inRt, created_at, updated_at, created_by, updated_by`
+const PoissonColumns = `poisson_parameter_id, system_component_id, failure_event_hours, n, rate, created_at, updated_at, created_by, updated_by`
+
+const ExponentialColumns =`exponential_parameter_id, system_component_id, failure_event_hours, n, fregf, f_t_median_rank, r_t, inRt, created_at, updated_at, created_by, updated_by`
 
 const PlotColumns = `reliability_plot_id, system_component_id, time_t, reliability_comp, created_at, updated_at, created_by, updated_by`
 

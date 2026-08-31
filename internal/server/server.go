@@ -36,6 +36,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	parameters := rbd.NewParameterService(rbdStore)
 	rbd.NewFailureHandler(rbd.NewFailureService(rbdStore), parameters).Mount(mux)
 	rbd.NewWeibullHandler(parameters).Mount(mux)
+	rbd.NewPoissonHandler(parameters).Mount(mux)
 	totals.Mount(mux)
 	return mux
 }

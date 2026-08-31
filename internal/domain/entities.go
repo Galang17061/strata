@@ -135,6 +135,19 @@ type WeibullParameter struct {
 	SystemComponentProperties *SystemComponentProperties `db:"-" json:"systemComponentProperties"`
 }
 
+type PoissonParameter struct {
+	PoissonParameterId        string                     `db:"poisson_parameter_id" json:"poissonParameterId"`
+	SystemComponentId         string                     `db:"system_component_id" json:"systemComponentId"`
+	FailureEventHours         int                        `db:"failure_event_hours" json:"failureEventHours"`
+	N                         int                        `db:"n" json:"n"`
+	Rate                      Number                     `db:"rate" json:"rate"`
+	CreatedAt                 DateTime                   `db:"created_at" json:"createdAt"`
+	UpdatedAt                 DateTime                   `db:"updated_at" json:"updatedAt"`
+	CreatedBy                 *string                    `db:"created_by" json:"createdBy"`
+	UpdatedBy                 *string                    `db:"updated_by" json:"updatedBy"`
+	SystemComponentProperties *SystemComponentProperties `db:"-" json:"systemComponentProperties"`
+}
+
 type ExponentialParameter struct {
 	ExponentialParameterId string   `db:"exponential_parameter_id" json:"exponentialParameterId"`
 	SystemComponentId      string   `db:"system_component_id" json:"systemComponentId"`

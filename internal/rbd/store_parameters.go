@@ -68,6 +68,37 @@ func (s *Store) UpdateFailureNumber(ctx context.Context, failureEventId string, 
 	return err
 }
 
+func (s *Store) PoissonParametersOfComponent(ctx context.Context, systemComponentId string) ([]domain.PoissonParameter, error) {
+	rows := []domain.PoissonParameter{}
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.PoissonColumns+` FROM dbo.PoissonParameter WHERE system_component_id = @p1 ORDER BY poisson_parameter_id`, systemComponentId)
+}
+
+func (s *Store) PoissonParametersByHours(ctx context.Context, systemComponentId string) ([]domain.PoissonParameter, error) {
+	rows := []domain.PoissonParameter{}
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.PoissonColumns+` FROM dbo.PoissonParameter WHERE system_component_id = @p1 ORDER BY failure_event_hours, poisson_parameter_id`, systemComponentId)
+}
+
+func (s *Store) LastPoissonIdOfOthers(ctx context.Context, systemComponentId string) (*string, error) {
+	var id string
+	err := s.q.GetContext(ctx, &id, `SELECT TOP 1 poisson_parameter_id FROM dbo.PoissonParameter WHERE system_component_id <> @p1 ORDER BY poisson_parameter_id DESC`, systemComponentId)
+	return optional(&id, err)
+}
+
+func (s *Store) DeletePoissonParametersOfComponent(ctx context.Context, systemComponentId string) error {
+	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.PoissonParameter WHERE system_component_id = @p1`, systemComponentId)
+	return err
+}
+
+func (s *Store) InsertPoissonParameters(ctx context.Context, rows []domain.PoissonParameter) error {
+	for _, p := range rows {
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.PoissonParameter (`+domain.PoissonColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9)`,
+			p.PoissonParameterId, p.SystemComponentId, p.FailureEventHours, p.N, p.Rate, p.CreatedAt, p.UpdatedAt, p.CreatedBy, p.UpdatedBy); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *Store) ExponentialParametersOfComponent(ctx context.Context, systemComponentId string) ([]domain.ExponentialParameter, error) {
 	rows := []domain.ExponentialParameter{}
 	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.ExponentialColumns+` FROM dbo.ExponentialParameter WHERE system_component_id = @p1 ORDER BY exponential_parameter_id`, systemComponentId)
