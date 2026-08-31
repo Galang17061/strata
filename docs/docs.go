@@ -3871,6 +3871,135 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/SystemComponentProperties/{systemComponentId}/poisson": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Recalculate the Poisson rate and survival figure of a component from its failure history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/poisson-parameter": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Create the initial Poisson rate entries for a component from its failure history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/SystemComponentProperties/{systemComponentId}/poisson-parameters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "List the Poisson rate entries of a component",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/SystemComponentProperties/{systemComponentId}/weibull": {
             "put": {
                 "security": [
@@ -4811,6 +4940,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "activeComponent": {
+                    "type": "integer"
+                },
+                "allowedFailures": {
                     "type": "integer"
                 },
                 "componentName": {
