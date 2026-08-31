@@ -197,6 +197,7 @@ func (s *SystemService) InputOutputParameters(ctx context.Context, hierarchyId s
 			ScaleParameter:       component.ScaleParameter,
 			ComponentReliability: component.ReliabilityValue,
 			Mtbf:                 component.Mtbf,
+			AllowedFailures:      component.AllowedFailures,
 		})
 	}
 	return result, nil

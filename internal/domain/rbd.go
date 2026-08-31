@@ -96,6 +96,7 @@ type ComponentInputOutputParameters struct {
 	ScaleParameter       *Number `json:"scaleParameter"`
 	ComponentReliability *Number `json:"componentReliability"`
 	Mtbf                 *Number `json:"mtbf"`
+	AllowedFailures      *int    `json:"allowedFailures"`
 }
 
 type MasterComponentWithVendor struct {
