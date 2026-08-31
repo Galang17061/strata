@@ -269,8 +269,8 @@ func (s *Store) ComponentCodeExists(ctx context.Context, rbdSystemId, code strin
 
 func (s *Store) InsertComponents(ctx context.Context, rows []domain.SystemComponentProperties) error {
 	for _, c := range rows {
-		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentProperties (`+domain.SystemComponentColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29)`,
-			c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, c.CreatedAt, c.UpdatedAt, c.CreatedBy, c.UpdatedBy); err != nil {
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentProperties (`+domain.SystemComponentColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30)`,
+			c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, domain.DerefInt(c.AllowedFailures, 0), c.CreatedAt, c.UpdatedAt, c.CreatedBy, c.UpdatedBy); err != nil {
 			return err
 		}
 	}
@@ -278,8 +278,8 @@ func (s *Store) InsertComponents(ctx context.Context, rows []domain.SystemCompon
 }
 
 func (s *Store) UpdateComponent(ctx context.Context, c domain.SystemComponentProperties) error {
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.SystemComponentProperties SET rbd_system_id = @p2, parent_id = @p3, component_name = @p4, component_tag_number = @p5, active = @p6, vendor = @p7, formula_code = @p8, distribution_type = @p9, failure_rate = @p10, running_hours = @p11, scale_parameter = @p12, shape_parameter = @p13, connection_type = @p14, connection_to_id = @p15, position_x = @p16, position_y = @p17, source_position = @p18, target_position = @p19, id_node = @p20, reliability_value = @p21, active_component = @p22, total_component = @p23, regresi = @p24, mtbf = @p25, updated_at = @p26, updated_by = @p27 WHERE system_component_id = @p1`,
-		c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, c.UpdatedAt, c.UpdatedBy)
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.SystemComponentProperties SET rbd_system_id = @p2, parent_id = @p3, component_name = @p4, component_tag_number = @p5, active = @p6, vendor = @p7, formula_code = @p8, distribution_type = @p9, failure_rate = @p10, running_hours = @p11, scale_parameter = @p12, shape_parameter = @p13, connection_type = @p14, connection_to_id = @p15, position_x = @p16, position_y = @p17, source_position = @p18, target_position = @p19, id_node = @p20, reliability_value = @p21, active_component = @p22, total_component = @p23, regresi = @p24, mtbf = @p25, allowed_failures = @p28, updated_at = @p26, updated_by = @p27 WHERE system_component_id = @p1`,
+		c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, c.UpdatedAt, c.UpdatedBy, domain.DerefInt(c.AllowedFailures, 0))
 	return err
 }
 

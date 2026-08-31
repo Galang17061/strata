@@ -1,6 +1,6 @@
 package domain
 
-const SystemComponentColumns = `system_component_id, rbd_system_id, parent_id, component_name, component_tag_number, active, vendor, formula_code, distribution_type, failure_rate, running_hours, scale_parameter, shape_parameter, connection_type, connection_to_id, position_x, position_y, source_position, target_position, id_node, reliability_value, active_component, total_component, regresi, mtbf, created_at, updated_at, created_by, updated_by`
+const SystemComponentColumns = `system_component_id, rbd_system_id, parent_id, component_name, component_tag_number, active, vendor, formula_code, distribution_type, failure_rate, running_hours, scale_parameter, shape_parameter, connection_type, connection_to_id, position_x, position_y, source_position, target_position, id_node, reliability_value, active_component, total_component, regresi, mtbf, allowed_failures, created_at, updated_at, created_by, updated_by`
 
 const RbdSystemColumns = `rbd_system_id, project_id, drawing_name, system_name, running_hours, reliability_total, formula, created_at, updated_at, created_by, updated_by`
 

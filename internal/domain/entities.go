@@ -76,6 +76,7 @@ type SystemComponentProperties struct {
 	TotalComponent     *int              `db:"total_component" json:"totalComponent"`
 	Regresi            *Number           `db:"regresi" json:"regresi"`
 	Mtbf               *Number           `db:"mtbf" json:"mtbf"`
+	AllowedFailures    *int              `db:"allowed_failures" json:"allowedFailures"`
 	CreatedAt          *DateTime         `db:"created_at" json:"createdAt"`
 	UpdatedAt          *DateTime         `db:"updated_at" json:"updatedAt"`
 	CreatedBy          *string           `db:"created_by" json:"createdBy"`
