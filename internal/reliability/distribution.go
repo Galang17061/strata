@@ -38,6 +38,21 @@ func WeibullFloat(t, eta, beta float64) float64 {
 	return math.Exp(-math.Pow(t/eta, beta))
 }
 
+func PoissonFloat(lambda, t float64, allowedFailures int) float64 {
+	mean := lambda * t
+	term := math.Exp(-mean)
+	sum := term
+	for k := 1; k <= allowedFailures; k++ {
+		term *= mean / float64(k)
+		sum += term
+	}
+	return sum
+}
+
+func PoissonFromFloats(failureRate, runningHours decimal.Decimal, allowedFailures int) decimal.Decimal {
+	return MustFromFloat(PoissonFloat(ToFloat(failureRate), ToFloat(runningHours), allowedFailures))
+}
+
 func SeriesOfIdentical(reliability decimal.Decimal, total int) decimal.Decimal {
 	return MustFromFloat(math.Pow(ToFloat(reliability), float64(total)))
 }
