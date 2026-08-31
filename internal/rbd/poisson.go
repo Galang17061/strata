@@ -132,6 +132,56 @@ func (s *ParameterService) SeedPoisson(ctx context.Context, systemComponentId, c
 	return envelope, err
 }
 
+func (s *ParameterService) UpdatePoisson(ctx context.Context, systemComponentId, currentUser string) (web.Envelope, error) {
+	rows, err := s.store.PoissonParametersByHours(ctx, systemComponentId)
+	if err != nil {
+		return web.Envelope{}, err
+	}
+	component, err := s.store.FindComponent(ctx, systemComponentId)
+	if err != nil {
+		return web.Envelope{}, err
+	}
+	if component == nil {
+		return web.NotFound("SystemComponentProperties not found for the specified SystemComponentId"), nil
+	}
+	allowance := domain.DerefInt(component.AllowedFailures, 0)
+	lambda := 0.0
+	if len(rows) > 0 {
+		lambda = reliability.ToFloat(rows[len(rows)-1].Rate.Decimal)
+	} else if component.FailureRate != nil {
+		lambda = reliability.ToFloat(component.FailureRate.Decimal)
+	}
+	if lambda <= 0 {
+		return web.BadRequest("Cannot Calculated, Please input Failure Rate first"), nil
+	}
+	failureRate, err := reliability.FromFloat(lambda)
+	if err != nil {
+		return web.Envelope{}, domain.Argument(err.Error())
+	}
+	mtbf, err := reliability.FromFloat(float64(allowance+1) / lambda)
+	if err != nil {
+		return web.Envelope{}, domain.Argument(err.Error())
+	}
+	component.Active = domain.IntPtr(1)
+	component.DistributionType = domain.StringPtr("Poisson")
+	component.FailureRate = domain.NumberPtr(domain.NewNumber(failureRate))
+	component.Mtbf = domain.NumberPtr(domain.NewNumber(mtbf))
+	if component.RunningHours != nil {
+		value, err := reliability.FromFloat(reliability.PoissonFloat(lambda, reliability.ToFloat(component.RunningHours.Decimal), allowance))
+		if err != nil {
+			return web.Envelope{}, domain.Argument(err.Error())
+		}
+		component.ReliabilityValue = domain.NumberPtr(domain.NewNumber(value))
+	}
+	component.UpdatedBy = domain.StringPtr(currentUser)
+	now := domain.Now()
+	component.UpdatedAt = &now
+	if err := s.store.UpdateComponent(ctx, *component); err != nil {
+		return web.Envelope{}, err
+	}
+	return web.Success(calculationView(*component, false, false), "Data updated successfully"), nil
+}
+
 func poissonEventRate(n, hours int) float64 {
 	if hours <= 0 {
 		return 0

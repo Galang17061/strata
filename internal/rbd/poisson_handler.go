@@ -22,8 +22,36 @@ func (h *PoissonHandler) Mount(router chi.Router) {
 	router.Group(func(protected chi.Router) {
 		protected.Use(auth.Require)
 		protected.Get("/api/SystemComponentProperties/{systemComponentId}/poisson-parameters", h.list)
+		protected.Put("/api/SystemComponentProperties/{systemComponentId}/poisson", h.update)
 		protected.Post("/api/SystemComponentProperties/{systemComponentId}/poisson-parameter", h.seed)
 	})
+}
+
+// @Summary Recalculate the Poisson rate and survival figure of a component from its failure history
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "System component id"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId}/poisson [put]
+func (h *PoissonHandler) update(w http.ResponseWriter, r *http.Request) {
+	systemComponentId := chi.URLParam(r, "systemComponentId")
+	if strings.TrimSpace(systemComponentId) == "" {
+		web.Respond(w, http.StatusBadRequest, web.Failed(http.StatusBadRequest, "SystemComponentId is required", nil))
+		return
+	}
+	envelope, err := h.parameters.UpdatePoisson(r.Context(), systemComponentId, auth.CurrentUserName(r.Context()))
+	if err != nil {
+		web.Respond(w, http.StatusInternalServerError, web.Failed(http.StatusInternalServerError, "Internal server error: "+err.Error(), nil))
+		return
+	}
+	if envelope.StatusCode == http.StatusBadRequest || envelope.StatusCode == http.StatusNotFound {
+		web.Respond(w, http.StatusBadRequest, envelope)
+		return
+	}
+	web.Respond(w, http.StatusOK, envelope)
 }
 
 // @Summary List the Poisson rate entries of a component
