@@ -293,6 +293,12 @@ func monitoredReliability(row domain.SystemComponentProperties) float64 {
 		}
 		return 0
 	}
+	if domain.Deref(row.DistributionType) == "Poisson" {
+		if row.FailureRate != nil && row.RunningHours != nil {
+			return reliability.PoissonFloat(reliability.ToFloat(row.FailureRate.Decimal), reliability.ToFloat(row.RunningHours.Decimal), domain.DerefInt(row.AllowedFailures, 0))
+		}
+		return 0
+	}
 	if row.RunningHours != nil && row.ScaleParameter != nil && row.ShapeParameter != nil && !row.ScaleParameter.IsZero() && !row.ShapeParameter.IsZero() {
 		return reliability.WeibullFloat(reliability.ToFloat(row.RunningHours.Decimal), reliability.ToFloat(row.ScaleParameter.Decimal), reliability.ToFloat(row.ShapeParameter.Decimal))
 	}
