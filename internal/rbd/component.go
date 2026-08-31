@@ -209,6 +209,9 @@ func (s *ComponentService) UpdateDetail(ctx context.Context, systemComponentId s
 		if request.Mtbf != nil {
 			existing.Mtbf = request.Mtbf
 		}
+		if request.AllowedFailures != nil {
+			existing.AllowedFailures = request.AllowedFailures
+		}
 		existing.UpdatedBy = domain.StringPtr(currentUser)
 		now := domain.Now()
 		existing.UpdatedAt = &now

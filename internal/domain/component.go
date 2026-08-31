@@ -32,6 +32,7 @@ type ComponentDetail struct {
 	TotalComponent     *int      `json:"totalComponent"`
 	Regresi            *Number   `json:"regresi"`
 	Mtbf               *Number   `json:"mtbf"`
+	AllowedFailures    *int      `json:"allowedFailures"`
 	CreatedAt          *DateTime `json:"createdAt"`
 	UpdatedAt          *DateTime `json:"updatedAt"`
 	CreatedBy          *string   `json:"createdBy"`
@@ -65,6 +66,7 @@ func ComponentDetailOf(c SystemComponentProperties) ComponentDetail {
 		TotalComponent:     c.TotalComponent,
 		Regresi:            c.Regresi,
 		Mtbf:               c.Mtbf,
+		AllowedFailures:    c.AllowedFailures,
 		CreatedAt:          c.CreatedAt,
 		UpdatedAt:          c.UpdatedAt,
 		CreatedBy:          c.CreatedBy,
@@ -103,6 +105,7 @@ type ComponentDetailUpdate struct {
 	TotalComponent     *int    `json:"totalComponent"`
 	Regresi            *Number `json:"regresi"`
 	Mtbf               *Number `json:"mtbf"`
+	AllowedFailures    *int    `json:"allowedFailures"`
 }
 
 type DrawingNodeInput struct {
