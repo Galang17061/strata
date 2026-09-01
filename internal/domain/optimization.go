@@ -105,3 +105,24 @@ type OptimizationApplyResult struct {
 	ProjectId   string `json:"projectId"`
 	RbdSystemId string `json:"rbdSystemId"`
 }
+
+type OptimizationRun struct {
+	OptimizationRunId    string   `db:"optimization_run_id" json:"optimizationRunId"`
+	RbdSystemId          string   `db:"rbd_system_id" json:"rbdSystemId"`
+	Mode                 int      `db:"mode" json:"mode"`
+	MaxBudget            *float64 `db:"max_budget" json:"maxBudget"`
+	TargetReliability    *float64 `db:"target_reliability" json:"targetReliability"`
+	WeightCost           *float64 `db:"weight_cost" json:"weightCost"`
+	WeightReliability    *float64 `db:"weight_reliability" json:"weightReliability"`
+	RunningHours         *float64 `db:"running_hours" json:"runningHours"`
+	PopulationSize       *int     `db:"population_size" json:"populationSize"`
+	MaxGenerations       *int     `db:"max_generations" json:"maxGenerations"`
+	CrossoverProbability *float64 `db:"crossover_probability" json:"crossoverProbability"`
+	MutationProbability  *float64 `db:"mutation_probability" json:"mutationProbability"`
+	Seed                 *int64   `db:"seed" json:"seed"`
+	Choices              *string  `db:"choices" json:"choices"`
+	ResultProjectId      *string  `db:"result_project_id" json:"resultProjectId"`
+	ResultRbdSystemId    *string  `db:"result_rbd_system_id" json:"resultRbdSystemId"`
+	CreatedAt            DateTime `db:"created_at" json:"createdAt"`
+	CreatedBy            *string  `db:"created_by" json:"createdBy"`
+}

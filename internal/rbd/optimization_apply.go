@@ -2,6 +2,7 @@ package rbd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -264,6 +265,38 @@ func (s *OptimizationService) Apply(ctx context.Context, request domain.Optimiza
 			})
 		}
 		if err := tx.InsertEdges(ctx, newEdges); err != nil {
+			return err
+		}
+		mode := 0
+		if request.Mode != nil {
+			mode = *request.Mode
+		}
+		var choicesJSON *string
+		if len(request.Choices) > 0 {
+			if encoded, err := json.Marshal(request.Choices); err == nil {
+				choicesJSON = domain.StringPtr(string(encoded))
+			}
+		}
+		if err := tx.InsertOptimizationRun(ctx, domain.OptimizationRun{
+			OptimizationRunId:    domain.NewGuid().String(),
+			RbdSystemId:          rbdSystemId,
+			Mode:                 mode,
+			MaxBudget:            request.MaxBudget,
+			TargetReliability:    request.TargetReliability,
+			WeightCost:           request.WeightCost,
+			WeightReliability:    request.WeightReliability,
+			RunningHours:         request.RunningHours,
+			PopulationSize:       request.PopulationSize,
+			MaxGenerations:       request.MaxGenerations,
+			CrossoverProbability: request.CrossoverProbability,
+			MutationProbability:  request.MutationProbability,
+			Seed:                 request.Seed,
+			Choices:              choicesJSON,
+			ResultProjectId:      domain.StringPtr(newProjectId),
+			ResultRbdSystemId:    domain.StringPtr(newSystemId),
+			CreatedAt:            now,
+			CreatedBy:            domain.StringPtr(currentUser),
+		}); err != nil {
 			return err
 		}
 		result.ProjectId = newProjectId
