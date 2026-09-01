@@ -24,6 +24,7 @@ func (h *OptimizationHandler) Mount(router chi.Router) {
 		protected.Use(auth.Require)
 		protected.Post("/api/Optimization/preview", h.preview)
 		protected.Post("/api/Optimization/score", h.score)
+		protected.Post("/api/Optimization/apply", h.apply)
 	})
 }
 
@@ -66,6 +67,31 @@ func (h *OptimizationHandler) preview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(result, "Optimization preview calculated successfully"))
+}
+
+// @Summary Turn a previewed vendor line-up into a new project holding a full copy of the system
+// @Tags Optimization
+// @Accept json
+// @Produce json
+// @Param request body domain.OptimizationApplyRequest true "Apply request"
+// @Success 201 {object} web.Envelope
+// @Failure 400 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Failure 500 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/Optimization/apply [post]
+func (h *OptimizationHandler) apply(w http.ResponseWriter, r *http.Request) {
+	var request domain.OptimizationApplyRequest
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.Respond(w, http.StatusBadRequest, web.BadRequest(err.Error()))
+		return
+	}
+	result, err := h.service.Apply(r.Context(), request, auth.CurrentUserName(r.Context()))
+	if err != nil {
+		respondOptimizationError(w, err)
+		return
+	}
+	web.Respond(w, http.StatusCreated, web.Created(result, "Optimized system created successfully"))
 }
 
 // @Summary Price and score one explicit vendor line-up without searching

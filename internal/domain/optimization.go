@@ -82,3 +82,26 @@ type OptimizationScoreResult struct {
 	Totals   OptimizationTotals `json:"totals"`
 	Feasible *bool              `json:"feasible"`
 }
+
+type OptimizationApplyRequest struct {
+	RbdSystemId          *string            `json:"rbdSystemId"`
+	ProjectName          *string            `json:"projectName"`
+	SystemName           *string            `json:"systemName"`
+	RunningHours         *float64           `json:"runningHours"`
+	Choices              []OptimizationLock `json:"choices"`
+	Mode                 *int               `json:"mode"`
+	MaxBudget            *float64           `json:"maxBudget"`
+	TargetReliability    *float64           `json:"targetReliability"`
+	WeightCost           *float64           `json:"weightCost"`
+	WeightReliability    *float64           `json:"weightReliability"`
+	PopulationSize       *int               `json:"populationSize"`
+	MaxGenerations       *int               `json:"maxGenerations"`
+	CrossoverProbability *float64           `json:"crossoverProbability"`
+	MutationProbability  *float64           `json:"mutationProbability"`
+	Seed                 *int64             `json:"seed"`
+}
+
+type OptimizationApplyResult struct {
+	ProjectId   string `json:"projectId"`
+	RbdSystemId string `json:"rbdSystemId"`
+}
