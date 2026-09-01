@@ -366,6 +366,11 @@ func (s *Store) MasterComponentsWithVendor(ctx context.Context) ([]domain.Master
 	return rows, s.q.SelectContext(ctx, &rows, `SELECT c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id ORDER BY c.component_id`)
 }
 
+func (s *Store) MasterComponentsByName(ctx context.Context, name string) ([]domain.MasterComponentWithVendor, error) {
+	rows := []domain.MasterComponentWithVendor{}
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = @p1 ORDER BY c.component_id`, name)
+}
+
 func (s *Store) MasterComponentByNameAndVendor(ctx context.Context, name string, vendor *string) (*domain.MasterComponentWithVendor, error) {
 	var row domain.MasterComponentWithVendor
 	query := `SELECT TOP 1 c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = @p1`
