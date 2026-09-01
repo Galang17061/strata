@@ -1958,6 +1958,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/Optimization/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Optimization"
+                ],
+                "summary": "Turn a previewed vendor line-up into a new project holding a full copy of the system",
+                "parameters": [
+                    {
+                        "description": "Apply request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationApplyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Optimization/preview": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Optimization"
+                ],
+                "summary": "Search vendor line-ups for a system with a genetic algorithm and preview the best one",
+                "parameters": [
+                    {
+                        "description": "Optimization request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationPreviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Optimization/score": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Optimization"
+                ],
+                "summary": "Price and score one explicit vendor line-up without searching",
+                "parameters": [
+                    {
+                        "description": "Score request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationScoreRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
         "/api/ReliabilityEditor/failureEvent": {
             "get": {
                 "security": [
@@ -5268,6 +5436,134 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "decimal.Decimal": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.OptimizationApplyRequest": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationLock"
+                    }
+                },
+                "crossoverProbability": {
+                    "type": "number"
+                },
+                "maxBudget": {
+                    "type": "number"
+                },
+                "maxGenerations": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "integer"
+                },
+                "mutationProbability": {
+                    "type": "number"
+                },
+                "populationSize": {
+                    "type": "integer"
+                },
+                "projectName": {
+                    "type": "string"
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "runningHours": {
+                    "type": "number"
+                },
+                "seed": {
+                    "type": "integer"
+                },
+                "systemName": {
+                    "type": "string"
+                },
+                "targetReliability": {
+                    "type": "number"
+                },
+                "weightCost": {
+                    "type": "number"
+                },
+                "weightReliability": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.OptimizationLock": {
+            "type": "object",
+            "properties": {
+                "componentId": {
+                    "type": "string"
+                },
+                "systemComponentId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.OptimizationPreviewRequest": {
+            "type": "object",
+            "properties": {
+                "crossoverProbability": {
+                    "type": "number"
+                },
+                "locks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationLock"
+                    }
+                },
+                "maxBudget": {
+                    "type": "number"
+                },
+                "maxGenerations": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "integer"
+                },
+                "mutationProbability": {
+                    "type": "number"
+                },
+                "populationSize": {
+                    "type": "integer"
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "runningHours": {
+                    "type": "number"
+                },
+                "seed": {
+                    "type": "integer"
+                },
+                "targetReliability": {
+                    "type": "number"
+                },
+                "weightCost": {
+                    "type": "number"
+                },
+                "weightReliability": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_Galang17061_strata-api_internal_domain.OptimizationScoreRequest": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Galang17061_strata-api_internal_domain.OptimizationLock"
+                    }
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "runningHours": {
                     "type": "number"
                 }
             }
