@@ -287,6 +287,29 @@ func (s *OptimizationService) buildProblem(ctx context.Context, rbdSystemId stri
 			problem.Total = compiled
 		}
 	}
+	provided := map[string]bool{}
+	for _, slot := range problem.Slots {
+		provided[slot.FormulaCode] = true
+	}
+	for code := range problem.FixedValues {
+		provided[code] = true
+	}
+	for _, layer := range problem.Layers {
+		provided[layer.Code] = true
+	}
+	needed := []string{}
+	if problem.Total != nil {
+		needed = append(needed, problem.Total.Names...)
+	}
+	for _, layer := range problem.Layers {
+		needed = append(needed, layer.Formula.Names...)
+	}
+	for _, name := range needed {
+		if !provided[name] {
+			problem.FixedValues[name] = 1
+			provided[name] = true
+		}
+	}
 	return built, nil
 }
 
