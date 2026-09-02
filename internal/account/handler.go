@@ -23,6 +23,8 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) Mount(router chi.Router) {
 	router.Post("/api/Auth/Login", h.login)
 	router.Post("/api/Auth/logout", h.logout)
+	router.Post("/api/Auth/ForgotPassword", h.forgotPassword)
+	router.Post("/api/Auth/ResetPassword", h.resetWithToken)
 	router.Get("/api/User/me", h.currentUser)
 	router.Get("/api/User", h.listUsers)
 	router.Get("/api/User/DetailUser", h.userDetail)
@@ -73,6 +75,56 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(response, "Success"))
+}
+
+// @Summary Ask for a password reset letter by email
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body domain.ForgotPasswordRequest true "Account email"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Router /api/Auth/ForgotPassword [post]
+func (h *Handler) forgotPassword(w http.ResponseWriter, r *http.Request) {
+	var request domain.ForgotPasswordRequest
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	if problems := requiredFields(map[string]string{"Email": request.Email}); problems != nil {
+		web.RespondValidation(w, problems)
+		return
+	}
+	if err := h.service.ForgotPassword(r.Context(), request.Email); err != nil {
+		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(nil, "If that email is known here, a reset letter is on its way."))
+}
+
+// @Summary Set a new password using a reset token from the letter
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body domain.ResetPasswordRequest true "Token and new password"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Router /api/Auth/ResetPassword [post]
+func (h *Handler) resetWithToken(w http.ResponseWriter, r *http.Request) {
+	var request domain.ResetPasswordRequest
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	if problems := requiredFields(map[string]string{"Token": request.Token, "PasswordNew": request.PasswordNew, "ReconfirmPassword": request.ReconfirmPassword}); problems != nil {
+		web.RespondValidation(w, problems)
+		return
+	}
+	if err := h.service.ResetPasswordWithToken(r.Context(), request); err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(nil, "The password has been changed. Sign in with the new one."))
 }
 
 // @Summary Sign out of the current session

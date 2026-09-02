@@ -83,6 +83,16 @@ type PasswordUpdate struct {
 	ReconfirmPassword string `json:"reconfirmPassword"`
 }
 
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+type ResetPasswordRequest struct {
+	Token             string `json:"token"`
+	PasswordNew       string `json:"passwordNew"`
+	ReconfirmPassword string `json:"reconfirmPassword"`
+}
+
 type RoleCreate struct {
 	RoleName string `json:"roleName"`
 }

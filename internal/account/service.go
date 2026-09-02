@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/domain"
@@ -192,6 +193,41 @@ func (s *Service) storeConfirmedPassword(ctx context.Context, id domain.Guid, re
 		return domain.InvalidOperation("new password is not the same as the confirmed password")
 	}
 	return s.store.UpdateUserPassword(ctx, id, encrypted)
+}
+
+func (s *Service) ForgotPassword(ctx context.Context, email string) error {
+	user, err := s.store.UserByEmail(ctx, strings.TrimSpace(email))
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return nil
+	}
+	token, digest, err := newToken()
+	if err != nil {
+		return err
+	}
+	if err := s.store.InsertPasswordReset(ctx, domain.NewGuid().String(), user.Id, digest, time.Now().Add(time.Hour)); err != nil {
+		return err
+	}
+	link := s.webURL + "/reset-password/?token=" + token
+	body := "Hello " + user.Fullname + ",\n\nSomeone asked to reset the password for this account. The link below works once and only for the next hour:\n\n" + link + "\n\nIf this was not you, ignore this letter and nothing will change."
+	return s.mailer.Send(user.Email, "Reset your Strata password", body)
+}
+
+func (s *Service) ResetPasswordWithToken(ctx context.Context, request domain.ResetPasswordRequest) error {
+	reset, err := s.store.ActivePasswordReset(ctx, hashToken(request.Token))
+	if err != nil {
+		return err
+	}
+	if reset == nil {
+		return domain.InvalidOperation("This reset link is no longer valid. Ask for a fresh one from the sign-in page.")
+	}
+	update := domain.PasswordUpdate{PasswordNew: request.PasswordNew, ReconfirmPassword: request.ReconfirmPassword}
+	if err := s.storeConfirmedPassword(ctx, reset.UserId, update); err != nil {
+		return err
+	}
+	return s.store.MarkPasswordResetUsed(ctx, reset.Id)
 }
 
 func (s *Service) DeleteUser(ctx context.Context, id domain.Guid) error {

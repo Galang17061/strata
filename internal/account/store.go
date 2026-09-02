@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -41,6 +42,27 @@ func (s *Store) UserByEmail(ctx context.Context, email string) (*domain.User, er
 	var user domain.User
 	err := s.db.GetContext(ctx, &user, `SELECT TOP 1 Id, Fullname, UserName, Email, Password FROM dbo.Users WHERE Email = @p1 ORDER BY Id`, email)
 	return optional(&user, err)
+}
+
+type passwordReset struct {
+	Id     string      `db:"password_reset_id"`
+	UserId domain.Guid `db:"user_id"`
+}
+
+func (s *Store) InsertPasswordReset(ctx context.Context, id string, userId domain.Guid, tokenHash string, expiresAt time.Time) error {
+	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.PasswordReset (password_reset_id, user_id, token_hash, expires_at) VALUES (@p1, @p2, @p3, @p4)`, id, userId, tokenHash, expiresAt)
+	return err
+}
+
+func (s *Store) ActivePasswordReset(ctx context.Context, tokenHash string) (*passwordReset, error) {
+	var row passwordReset
+	err := s.db.GetContext(ctx, &row, `SELECT TOP 1 password_reset_id, user_id FROM dbo.PasswordReset WHERE token_hash = @p1 AND used_at IS NULL AND expires_at > GETDATE() ORDER BY created_at DESC`, tokenHash)
+	return optional(&row, err)
+}
+
+func (s *Store) MarkPasswordResetUsed(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE dbo.PasswordReset SET used_at = GETDATE() WHERE password_reset_id = @p1`, id)
+	return err
 }
 
 type userWithRole struct {
