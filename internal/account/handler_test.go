@@ -18,7 +18,7 @@ import (
 func mountedRouter(issuer auth.TokenIssuer) http.Handler {
 	mux := web.NewRouter()
 	mux.Use(auth.Authenticate(issuer))
-	NewHandler(NewService(nil, auth.NewCipher("key"), issuer)).Mount(mux)
+	NewHandler(NewService(nil, auth.NewCipher("key"), issuer, nil, "http://localhost:3000")).Mount(mux)
 	return mux
 }
 

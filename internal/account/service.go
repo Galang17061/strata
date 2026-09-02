@@ -6,16 +6,19 @@ import (
 
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/domain"
+	"github.com/Galang17061/strata-api/internal/mail"
 )
 
 type Service struct {
 	store  *Store
 	cipher auth.Cipher
 	tokens auth.TokenIssuer
+	mailer *mail.Sender
+	webURL string
 }
 
-func NewService(store *Store, cipher auth.Cipher, tokens auth.TokenIssuer) *Service {
-	return &Service{store: store, cipher: cipher, tokens: tokens}
+func NewService(store *Store, cipher auth.Cipher, tokens auth.TokenIssuer, mailer *mail.Sender, webURL string) *Service {
+	return &Service{store: store, cipher: cipher, tokens: tokens, mailer: mailer, webURL: webURL}
 }
 
 func (s *Service) Login(ctx context.Context, request domain.LoginRequest) (domain.LoginResponse, error) {

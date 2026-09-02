@@ -18,6 +18,12 @@ type Config struct {
 	PasswordKey      string
 	UploadDir        string
 	MigrationsDir    string
+	WebURL           string
+	MailHost         string
+	MailPort         string
+	MailUsername     string
+	MailPassword     string
+	MailFrom         string
 }
 
 func Load() (Config, error) {
@@ -32,6 +38,12 @@ func Load() (Config, error) {
 		PasswordKey:      os.Getenv("STRATA_PASSWORD_KEY"),
 		UploadDir:        envOr("STRATA_UPLOAD_DIR", "./upload"),
 		MigrationsDir:    envOr("STRATA_MIGRATIONS_DIR", "./migrations"),
+		WebURL:           envOr("STRATA_WEB_URL", "http://localhost:3000"),
+		MailHost:         os.Getenv("STRATA_MAIL_HOST"),
+		MailPort:         envOr("STRATA_MAIL_PORT", "587"),
+		MailUsername:     os.Getenv("STRATA_MAIL_USERNAME"),
+		MailPassword:     os.Getenv("STRATA_MAIL_PASSWORD"),
+		MailFrom:         os.Getenv("STRATA_MAIL_FROM"),
 	}
 	if raw := os.Getenv("STRATA_JWT_EXPIRY_MINUTES"); raw != "" {
 		minutes, err := strconv.Atoi(raw)
