@@ -25,6 +25,9 @@ func (h *Handler) Mount(router chi.Router) {
 	router.Post("/api/Auth/logout", h.logout)
 	router.Post("/api/Auth/ForgotPassword", h.forgotPassword)
 	router.Post("/api/Auth/ResetPassword", h.resetWithToken)
+	router.With(auth.Require).Post("/api/User/Invite", h.createInvite)
+	router.Get("/api/User/Invite/{Token}", h.inviteDetail)
+	router.Post("/api/User/AcceptInvite", h.acceptInvite)
 	router.Get("/api/User/me", h.currentUser)
 	router.Get("/api/User", h.listUsers)
 	router.Get("/api/User/DetailUser", h.userDetail)
@@ -125,6 +128,75 @@ func (h *Handler) resetWithToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(nil, "The password has been changed. Sign in with the new one."))
+}
+
+// @Summary Invite someone by email to create their own account
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body domain.InviteCreate true "Email and role"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Security BearerAuth
+// @Router /api/User/Invite [post]
+func (h *Handler) createInvite(w http.ResponseWriter, r *http.Request) {
+	var request domain.InviteCreate
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	if problems := requiredFields(map[string]string{"Email": request.Email}); problems != nil {
+		web.RespondValidation(w, problems)
+		return
+	}
+	created, err := h.service.InviteUser(r.Context(), request, auth.CurrentUserName(r.Context()))
+	if err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(created, "The invitation is ready."))
+}
+
+// @Summary Show whom an invitation token belongs to
+// @Tags User
+// @Produce json
+// @Param Token path string true "Invitation token"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} map[string]string
+// @Router /api/User/Invite/{Token} [get]
+func (h *Handler) inviteDetail(w http.ResponseWriter, r *http.Request) {
+	view, err := h.service.InviteDetail(r.Context(), chi.URLParam(r, "Token"))
+	if err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(view, "Success"))
+}
+
+// @Summary Accept an invitation and create the account it promises
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body domain.InviteAccept true "Token and chosen credentials"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} web.ValidationProblem
+// @Router /api/User/AcceptInvite [post]
+func (h *Handler) acceptInvite(w http.ResponseWriter, r *http.Request) {
+	var request domain.InviteAccept
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	fields := map[string]string{"Token": request.Token, "UserName": request.UserName, "Fullname": request.Fullname, "Password": request.Password, "ReconfirmPassword": request.ReconfirmPassword}
+	if problems := requiredFields(fields); problems != nil {
+		web.RespondValidation(w, problems)
+		return
+	}
+	if err := h.service.AcceptInvite(r.Context(), request); err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(nil, "Welcome aboard. Sign in with your new account."))
 }
 
 // @Summary Sign out of the current session

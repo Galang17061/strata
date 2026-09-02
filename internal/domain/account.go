@@ -93,6 +93,30 @@ type ResetPasswordRequest struct {
 	ReconfirmPassword string `json:"reconfirmPassword"`
 }
 
+type InviteCreate struct {
+	Email  string `json:"email"`
+	RoleId Guid   `json:"roleId"`
+}
+
+type InviteCreated struct {
+	InviteUrl string   `json:"inviteUrl"`
+	ExpiresAt DateTime `json:"expiresAt"`
+	Delivered bool     `json:"delivered"`
+}
+
+type InviteView struct {
+	Email    string `json:"email"`
+	RoleName string `json:"roleName"`
+}
+
+type InviteAccept struct {
+	Token             string `json:"token"`
+	UserName          string `json:"userName"`
+	Fullname          string `json:"fullname"`
+	Password          string `json:"password"`
+	ReconfirmPassword string `json:"reconfirmPassword"`
+}
+
 type RoleCreate struct {
 	RoleName string `json:"roleName"`
 }

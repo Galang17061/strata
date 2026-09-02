@@ -230,6 +230,78 @@ func (s *Service) ResetPasswordWithToken(ctx context.Context, request domain.Res
 	return s.store.MarkPasswordResetUsed(ctx, reset.Id)
 }
 
+func (s *Service) InviteUser(ctx context.Context, request domain.InviteCreate, invitedBy string) (domain.InviteCreated, error) {
+	email := strings.TrimSpace(request.Email)
+	role, err := s.store.FindRole(ctx, request.RoleId)
+	if err != nil {
+		return domain.InviteCreated{}, err
+	}
+	if role == nil {
+		return domain.InviteCreated{}, domain.InvalidOperation("Role Id :'" + request.RoleId.String() + "' not found.")
+	}
+	existing, err := s.store.UserByEmail(ctx, email)
+	if err != nil {
+		return domain.InviteCreated{}, err
+	}
+	if existing != nil {
+		return domain.InviteCreated{}, domain.InvalidOperation("Email '" + email + "' already has an account.")
+	}
+	token, digest, err := newToken()
+	if err != nil {
+		return domain.InviteCreated{}, err
+	}
+	expires := time.Now().Add(7 * 24 * time.Hour)
+	if err := s.store.InsertInvite(ctx, domain.NewGuid().String(), email, role.Id, digest, expires, invitedBy); err != nil {
+		return domain.InviteCreated{}, err
+	}
+	link := s.webURL + "/invite/?token=" + token
+	delivered := s.mailer.Enabled()
+	if delivered {
+		body := "Hello,\n\nYou are invited to join Strata as " + role.RoleName + ". Open the link below to pick your username and password. It stays valid for seven days:\n\n" + link + "\n\nIf you were not expecting this, you can safely ignore it."
+		if err := s.mailer.Send(email, "You are invited to Strata", body); err != nil {
+			return domain.InviteCreated{}, err
+		}
+	}
+	return domain.InviteCreated{InviteUrl: link, ExpiresAt: domain.WallClock(expires), Delivered: delivered}, nil
+}
+
+func (s *Service) InviteDetail(ctx context.Context, token string) (domain.InviteView, error) {
+	invite, err := s.store.ActiveInvite(ctx, hashToken(token))
+	if err != nil {
+		return domain.InviteView{}, err
+	}
+	if invite == nil {
+		return domain.InviteView{}, domain.InvalidOperation("This invitation is no longer valid.")
+	}
+	role, err := s.store.FindRole(ctx, invite.RoleId)
+	if err != nil {
+		return domain.InviteView{}, err
+	}
+	roleName := ""
+	if role != nil {
+		roleName = role.RoleName
+	}
+	return domain.InviteView{Email: invite.Email, RoleName: roleName}, nil
+}
+
+func (s *Service) AcceptInvite(ctx context.Context, request domain.InviteAccept) error {
+	invite, err := s.store.ActiveInvite(ctx, hashToken(request.Token))
+	if err != nil {
+		return err
+	}
+	if invite == nil {
+		return domain.InvalidOperation("This invitation is no longer valid.")
+	}
+	if s.cipher.Encrypt(request.Password) != s.cipher.Encrypt(request.ReconfirmPassword) {
+		return domain.InvalidOperation("new password is not the same as the confirmed password")
+	}
+	create := domain.UserCreate{Fullname: request.Fullname, UserName: request.UserName, Email: invite.Email, Password: request.Password, RoleId: invite.RoleId}
+	if err := s.AddUser(ctx, create); err != nil {
+		return err
+	}
+	return s.store.MarkInviteAccepted(ctx, invite.Id)
+}
+
 func (s *Service) DeleteUser(ctx context.Context, id domain.Guid) error {
 	if err := s.store.DeleteUserRole(ctx, id); err != nil {
 		return err

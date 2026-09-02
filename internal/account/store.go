@@ -65,6 +65,28 @@ func (s *Store) MarkPasswordResetUsed(ctx context.Context, id string) error {
 	return err
 }
 
+type userInvite struct {
+	Id     string      `db:"user_invite_id"`
+	Email  string      `db:"email"`
+	RoleId domain.Guid `db:"role_id"`
+}
+
+func (s *Store) InsertInvite(ctx context.Context, id, email string, roleId domain.Guid, tokenHash string, expiresAt time.Time, createdBy string) error {
+	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.UserInvite (user_invite_id, email, role_id, token_hash, expires_at, created_by) VALUES (@p1, @p2, @p3, @p4, @p5, @p6)`, id, email, roleId, tokenHash, expiresAt, createdBy)
+	return err
+}
+
+func (s *Store) ActiveInvite(ctx context.Context, tokenHash string) (*userInvite, error) {
+	var row userInvite
+	err := s.db.GetContext(ctx, &row, `SELECT TOP 1 user_invite_id, email, role_id FROM dbo.UserInvite WHERE token_hash = @p1 AND accepted_at IS NULL AND expires_at > GETDATE() ORDER BY created_at DESC`, tokenHash)
+	return optional(&row, err)
+}
+
+func (s *Store) MarkInviteAccepted(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE dbo.UserInvite SET accepted_at = GETDATE() WHERE user_invite_id = @p1`, id)
+	return err
+}
+
 type userWithRole struct {
 	Id       domain.Guid  `db:"Id"`
 	Fullname string       `db:"Fullname"`
