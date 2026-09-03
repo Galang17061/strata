@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/shopspring/decimal"
@@ -321,12 +322,14 @@ func (s *TotalService) calculateRecursive(ctx context.Context, hierarchy domain.
 			return nil, err
 		}
 		if system != nil {
+			previous := system.ReliabilityTotal
 			system.ReliabilityTotal = current
 			system.UpdatedBy = domain.StringPtr(s.currentUser(ctx))
 			system.UpdatedAt = domain.Now()
 			if err := s.store.UpdateSystem(ctx, *system); err != nil {
 				return nil, err
 			}
+			s.notifyThreshold(ctx, *system, previous)
 		}
 	}
 	return &domain.HierarchyCalculation{
@@ -339,6 +342,29 @@ func (s *TotalService) calculateRecursive(ctx context.Context, hierarchy domain.
 		ReliabilityLookup:     values.ordered(),
 		Children:              childResults,
 	}, nil
+}
+
+func (s *TotalService) notifyThreshold(ctx context.Context, system domain.RbdSystemDrawing, previous *domain.Number) {
+	if system.ReliabilityTotal == nil {
+		return
+	}
+	threshold, err := s.store.FindThreshold(ctx, system.RbdSystemId)
+	if err != nil || threshold == nil {
+		return
+	}
+	floor := reliability.ToFloat(threshold.Decimal)
+	value := reliability.ToFloat(system.ReliabilityTotal.Decimal)
+	wasBelow := previous != nil && reliability.ToFloat(previous.Decimal) < floor
+	if value >= floor || wasBelow {
+		return
+	}
+	name := strings.TrimSpace(domain.Deref(system.SystemName))
+	if name == "" {
+		name = system.RbdSystemId
+	}
+	title := name + " fell below its reliability floor"
+	body := "The latest recalculation puts it at " + strconv.FormatFloat(value, 'f', 8, 64) + ", under the floor of " + strconv.FormatFloat(floor, 'f', 8, 64) + " you set."
+	s.store.InsertNotification(ctx, system.RbdSystemId, title, body)
 }
 
 type userKey struct{}
