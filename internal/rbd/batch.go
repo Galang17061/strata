@@ -63,6 +63,10 @@ func (s *BatchService) RecalculateSystem(ctx context.Context, rbdSystemId string
 	now := domain.Now()
 	unfitted := []string{}
 	for _, component := range components {
+		code := domain.Deref(component.FormulaCode)
+		if strings.HasPrefix(code, "IN") || strings.HasPrefix(code, "OUT") {
+			continue
+		}
 		component.RunningHours = &hours
 		component.UpdatedBy = domain.StringPtr(currentUser)
 		component.UpdatedAt = &now
@@ -98,8 +102,15 @@ func (s *BatchService) RecalculateSystem(ctx context.Context, rbdSystemId string
 		parsed := reliability.ToFloat(refreshed.ReliabilityTotal.Decimal)
 		total = &parsed
 	}
+	scored := 0
+	for _, component := range components {
+		code := domain.Deref(component.FormulaCode)
+		if !strings.HasPrefix(code, "IN") && !strings.HasPrefix(code, "OUT") {
+			scored++
+		}
+	}
 	return &domain.BatchRecalculateResult{
-		Components:       len(components),
+		Components:       scored,
 		Unfitted:         unfitted,
 		Uncalculated:     uncalculated,
 		ReliabilityTotal: total,
