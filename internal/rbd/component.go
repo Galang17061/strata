@@ -255,6 +255,34 @@ func (s *ComponentService) Delete(ctx context.Context, systemComponentId string)
 	return s.store.TouchSystem(ctx, domain.Deref(component.RbdSystemId))
 }
 
+func pooledWeibull(sortedHours []int) (float64, float64, bool) {
+	if len(sortedHours) < 2 {
+		return 0, 0, false
+	}
+	xValues := make([]float64, 0, len(sortedHours))
+	yValues := make([]float64, 0, len(sortedHours))
+	for index, hours := range sortedHours {
+		frequency := reliability.MedianRank(index+1, len(sortedHours))
+		x, y := reliability.WeibullPlotPoint(hours, frequency)
+		xValues = append(xValues, x)
+		yValues = append(yValues, y)
+	}
+	shape := reliability.SlopeWeibull(xValues, yValues)
+	intercept := reliability.InterceptWeibull(xValues, yValues)
+	if !isFiniteBeyondZero(shape) {
+		return 0, 0, false
+	}
+	scale := math.Exp(-intercept / shape)
+	if !isFiniteBeyondZero(scale) {
+		return 0, 0, false
+	}
+	return shape, scale, true
+}
+
+func isFiniteBeyondZero(value float64) bool {
+	return value > 0 && !math.IsInf(value, 0) && !math.IsNaN(value)
+}
+
 func suggestionFromStats(stats pooledFailureStats, source string) *domain.ParameterSuggestion {
 	if stats.Events == 0 || stats.Hours <= 0 {
 		return nil
@@ -285,6 +313,14 @@ func (s *ComponentService) SuggestParameters(ctx context.Context, systemComponen
 		return nil, err
 	}
 	if suggestion := suggestionFromStats(byComponent, "history"); suggestion != nil {
+		hoursList, err := s.store.PooledFailureHours(ctx, component.ComponentName, vendor)
+		if err != nil {
+			return nil, err
+		}
+		if beta, eta, ok := pooledWeibull(hoursList); ok {
+			suggestion.Beta = &beta
+			suggestion.Eta = &eta
+		}
 		return suggestion, nil
 	}
 	if vendor != "" {

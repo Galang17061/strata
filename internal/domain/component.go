@@ -177,4 +177,6 @@ type ParameterSuggestion struct {
 	TotalHours  float64  `json:"totalHours"`
 	FailureRate *float64 `json:"failureRate"`
 	Mtbf        *float64 `json:"mtbf"`
+	Beta        *float64 `json:"beta"`
+	Eta         *float64 `json:"eta"`
 }
