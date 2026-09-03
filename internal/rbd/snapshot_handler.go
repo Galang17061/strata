@@ -24,6 +24,7 @@ func (h *SnapshotHandler) Mount(router chi.Router) {
 		protected.Use(auth.Require)
 		protected.Get("/api/Snapshot/system/{RbdSystemId}", h.list)
 		protected.Post("/api/Snapshot/system/{RbdSystemId}", h.create)
+		protected.Post("/api/Snapshot/{SnapshotId}/Restore", h.restore)
 		protected.Delete("/api/Snapshot/{SnapshotId}", h.remove)
 	})
 }
@@ -71,6 +72,30 @@ func (h *SnapshotHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(row, "The version has been saved."))
+}
+
+// @Summary Bring a saved version back to life as a fresh system in its project
+// @Tags Snapshot
+// @Accept json
+// @Produce json
+// @Param SnapshotId path string true "Snapshot id"
+// @Param request body domain.SnapshotRestoreRequest true "Optional name for the restored system"
+// @Success 200 {object} web.Envelope
+// @Failure 400 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/Snapshot/{SnapshotId}/Restore [post]
+func (h *SnapshotHandler) restore(w http.ResponseWriter, r *http.Request) {
+	var request domain.SnapshotRestoreRequest
+	if err := web.DecodeBody(r, &request); err != nil {
+		web.RespondBodyProblem(w, err)
+		return
+	}
+	result, err := h.service.Restore(r.Context(), chi.URLParam(r, "SnapshotId"), request.SystemName, auth.CurrentUserName(r.Context()))
+	if err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(result, "The version lives again as a new system."))
 }
 
 // @Summary Throw away one saved version

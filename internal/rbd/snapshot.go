@@ -105,6 +105,133 @@ func (s *SnapshotService) List(ctx context.Context, rbdSystemId string) ([]domai
 	return s.store.SnapshotsOfSystem(ctx, rbdSystemId)
 }
 
+func (s *SnapshotService) Restore(ctx context.Context, snapshotId string, systemName *string, currentUser string) (*domain.SnapshotRestoreResult, error) {
+	snapshot, err := s.store.FindSnapshot(ctx, snapshotId)
+	if err != nil {
+		return nil, err
+	}
+	if snapshot == nil {
+		return nil, domain.KeyNotFound("Snapshot not found")
+	}
+	var payload snapshotPayload
+	if err := json.Unmarshal([]byte(snapshot.Payload), &payload); err != nil {
+		return nil, domain.InvalidOperation("This version cannot be read any more.")
+	}
+	result := &domain.SnapshotRestoreResult{}
+	err = s.store.Transact(ctx, func(tx *Store) error {
+		project, err := tx.FindProject(ctx, payload.System.ProjectId)
+		if err != nil {
+			return err
+		}
+		if project == nil {
+			return domain.InvalidOperation("The project this version belonged to no longer exists.")
+		}
+		systemIds, err := tx.SystemIds(ctx)
+		if err != nil {
+			return err
+		}
+		newSystemId := nextSequenceId(systemIds, "RS-")
+		lastHierarchy, err := tx.LastHierarchyId(ctx)
+		if err != nil {
+			return err
+		}
+		lastComponent, err := tx.LastComponentId(ctx)
+		if err != nil {
+			return err
+		}
+		remap := newIdRemapper()
+		hierarchyCounter := counterAfter(lastHierarchy, "H-")
+		for _, hierarchy := range payload.Hierarchies {
+			remap.add(hierarchy.HierarchyId, formatId("H-", hierarchyCounter))
+			hierarchyCounter++
+		}
+		componentCounter := counterAfter(lastComponent, "SCP-")
+		for _, component := range payload.Components {
+			remap.add(component.SystemComponentId, formatId("SCP-", componentCounter))
+			componentCounter++
+		}
+		remap.add(payload.System.RbdSystemId, newSystemId)
+		now := domain.Now()
+		name := domain.Deref(payload.System.SystemName) + " (" + snapshot.Label + ")"
+		if trimmed := strings.TrimSpace(domain.Deref(systemName)); trimmed != "" {
+			name = trimmed
+		}
+		if err := tx.InsertSystem(ctx, domain.RbdSystemDrawing{
+			RbdSystemId:  newSystemId,
+			ProjectId:    payload.System.ProjectId,
+			DrawingName:  payload.System.DrawingName,
+			SystemName:   domain.StringPtr(name),
+			RunningHours: payload.System.RunningHours,
+			Formula:      remap.textPtr(payload.System.Formula),
+			CreatedAt:    now,
+			UpdatedAt:    now,
+			CreatedBy:    domain.StringPtr(currentUser),
+			UpdatedBy:    domain.StringPtr(currentUser),
+		}); err != nil {
+			return err
+		}
+		newHierarchies := make([]domain.Hierarchy, 0, len(payload.Hierarchies))
+		for _, hierarchy := range payload.Hierarchies {
+			copied := hierarchy
+			copied.HierarchyId = remap.text(hierarchy.HierarchyId)
+			copied.RbdSystemId = domain.StringPtr(newSystemId)
+			copied.ParentId = remap.text(hierarchy.ParentId)
+			copied.Formula = remap.textPtr(hierarchy.Formula)
+			copied.FormulaCode = remap.textPtr(hierarchy.FormulaCode)
+			copied.SourceId = remap.textPtr(hierarchy.SourceId)
+			copied.TargetId = remap.textPtr(hierarchy.TargetId)
+			newHierarchies = append(newHierarchies, copied)
+		}
+		if err := tx.InsertHierarchies(ctx, newHierarchies); err != nil {
+			return err
+		}
+		newComponents := make([]domain.SystemComponentProperties, 0, len(payload.Components))
+		for _, component := range payload.Components {
+			copied := component
+			copied.SystemComponentId = remap.text(component.SystemComponentId)
+			copied.RbdSystemId = domain.StringPtr(newSystemId)
+			copied.ParentId = remap.textPtr(component.ParentId)
+			copied.FormulaCode = remap.textPtr(component.FormulaCode)
+			copied.IdNode = remap.textPtr(component.IdNode)
+			copied.ConnectionToId = remap.textPtr(component.ConnectionToId)
+			copied.CreatedAt = &now
+			copied.UpdatedAt = &now
+			copied.CreatedBy = domain.StringPtr(currentUser)
+			copied.UpdatedBy = domain.StringPtr(currentUser)
+			newComponents = append(newComponents, copied)
+		}
+		if err := tx.InsertComponents(ctx, newComponents); err != nil {
+			return err
+		}
+		newEdges := make([]domain.SystemComponentDrawing, 0, len(payload.Edges))
+		for _, edge := range payload.Edges {
+			newEdges = append(newEdges, domain.SystemComponentDrawing{
+				IdEdge:   domain.NewGuid().String(),
+				SourceId: remap.textPtr(edge.SourceId),
+				TargetId: remap.textPtr(edge.TargetId),
+			})
+		}
+		if err := tx.InsertEdges(ctx, newEdges); err != nil {
+			return err
+		}
+		result.ProjectId = payload.System.ProjectId
+		result.RbdSystemId = newSystemId
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	totals := NewTotalService(s.store)
+	calcCtx := WithUser(ctx, currentUser)
+	roots, err := s.store.RootHierarchies(calcCtx, result.RbdSystemId)
+	if err == nil {
+		for _, root := range roots {
+			totals.CalculateHierarchy(calcCtx, root.HierarchyId)
+		}
+	}
+	return result, nil
+}
+
 func (s *SnapshotService) Delete(ctx context.Context, snapshotId string) error {
 	snapshot, err := s.store.FindSnapshot(ctx, snapshotId)
 	if err != nil {
