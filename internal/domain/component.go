@@ -169,3 +169,12 @@ type CalculationSummary struct {
 	DataCalculation  []CalculationRow `json:"dataCalculation"`
 	ReliabilityTotal *float64         `json:"reliabilityTotal"`
 }
+
+type ParameterSuggestion struct {
+	Source      string   `json:"source"`
+	Events      int      `json:"events"`
+	Components  int      `json:"components"`
+	TotalHours  float64  `json:"totalHours"`
+	FailureRate *float64 `json:"failureRate"`
+	Mtbf        *float64 `json:"mtbf"`
+}

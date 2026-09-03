@@ -24,6 +24,7 @@ func (h *ComponentHandler) Mount(router chi.Router) {
 	router.Group(func(protected chi.Router) {
 		protected.Use(auth.Require)
 		protected.Get("/api/SystemComponentProperties/list", h.list)
+		protected.Get("/api/SystemComponentProperties/{systemComponentId}/suggested-parameters", h.suggest)
 		protected.Get("/api/SystemComponentProperties/{systemComponentId}", h.detail)
 		protected.Post("/api/SystemComponentProperties", h.create)
 		protected.Put("/api/SystemComponentProperties/{systemComponentId}", h.update)
@@ -80,6 +81,23 @@ func (h *ComponentHandler) list(w http.ResponseWriter, r *http.Request) {
 	}
 	items, meta := web.PageOptional(rows, query.page, query.pageSize)
 	web.Respond(w, http.StatusOK, web.SuccessWithMeta(items, "System component properties retrieved successfully", meta))
+}
+
+// @Summary Suggest a failure rate from the history the catalogue already holds
+// @Tags SystemComponentProperties
+// @Produce json
+// @Param systemComponentId path string true "Component id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} web.Envelope
+// @Security BearerAuth
+// @Router /api/SystemComponentProperties/{systemComponentId}/suggested-parameters [get]
+func (h *ComponentHandler) suggest(w http.ResponseWriter, r *http.Request) {
+	suggestion, err := h.service.SuggestParameters(r.Context(), chi.URLParam(r, "systemComponentId"))
+	if err != nil {
+		web.RespondMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(suggestion, "Success"))
 }
 
 // @Summary Retrieve the properties of one component

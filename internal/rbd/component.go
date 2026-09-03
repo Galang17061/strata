@@ -255,6 +255,61 @@ func (s *ComponentService) Delete(ctx context.Context, systemComponentId string)
 	return s.store.TouchSystem(ctx, domain.Deref(component.RbdSystemId))
 }
 
+func suggestionFromStats(stats pooledFailureStats, source string) *domain.ParameterSuggestion {
+	if stats.Events == 0 || stats.Hours <= 0 {
+		return nil
+	}
+	rate := float64(stats.Events) / stats.Hours
+	mtbf := stats.Hours / float64(stats.Events)
+	return &domain.ParameterSuggestion{
+		Source:      source,
+		Events:      stats.Events,
+		Components:  stats.Components,
+		TotalHours:  stats.Hours,
+		FailureRate: &rate,
+		Mtbf:        &mtbf,
+	}
+}
+
+func (s *ComponentService) SuggestParameters(ctx context.Context, systemComponentId string) (*domain.ParameterSuggestion, error) {
+	component, err := s.store.FindComponent(ctx, systemComponentId)
+	if err != nil {
+		return nil, err
+	}
+	if component == nil {
+		return nil, domain.KeyNotFound("SystemComponentProperties not found for the specified SystemComponentId")
+	}
+	vendor := strings.TrimSpace(domain.Deref(component.Vendor))
+	byComponent, err := s.store.PooledFailureStatsOfComponent(ctx, component.ComponentName, vendor)
+	if err != nil {
+		return nil, err
+	}
+	if suggestion := suggestionFromStats(byComponent, "history"); suggestion != nil {
+		return suggestion, nil
+	}
+	if vendor != "" {
+		byVendor, err := s.store.PooledFailureStatsOfVendor(ctx, vendor)
+		if err != nil {
+			return nil, err
+		}
+		if suggestion := suggestionFromStats(byVendor, "vendor"); suggestion != nil {
+			return suggestion, nil
+		}
+		master, err := s.store.MasterFailureRateFor(ctx, component.ComponentName, vendor)
+		if err != nil {
+			return nil, err
+		}
+		if master != nil {
+			rate := reliability.ToFloat(master.Decimal)
+			if rate > 0 {
+				mtbf := 1 / rate
+				return &domain.ParameterSuggestion{Source: "master", FailureRate: &rate, Mtbf: &mtbf}, nil
+			}
+		}
+	}
+	return &domain.ParameterSuggestion{Source: "none"}, nil
+}
+
 func (s *ComponentService) MonitoredComponents(ctx context.Context, search, sortBy, sortOrder string) ([]domain.MonitoredComponent, error) {
 	rows, err := s.store.NamedComponents(ctx, search, false)
 	if err != nil {
