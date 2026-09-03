@@ -5,15 +5,22 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/domain"
 )
 
 type HierarchyService struct {
-	store *Store
+	store     *Store
+	snapshots *SnapshotService
 }
 
 func NewHierarchyService(store *Store) *HierarchyService {
 	return &HierarchyService{store: store}
+}
+
+func (s *HierarchyService) WithSnapshots(snapshots *SnapshotService) *HierarchyService {
+	s.snapshots = snapshots
+	return s
 }
 
 func (s *HierarchyService) List(ctx context.Context, search, sortBy, sortOrder string) ([]domain.HierarchyView, error) {
@@ -235,6 +242,10 @@ func (s *HierarchyService) Delete(ctx context.Context, hierarchyId string) error
 	}
 	if existing == nil {
 		return domain.InvalidOperation("Hierarchy with ID " + hierarchyId + " not found")
+	}
+	if s.snapshots != nil && domain.Deref(existing.RbdSystemId) != "" {
+		label := "Before removing " + strings.TrimSpace(domain.Deref(existing.SubSystemName))
+		s.snapshots.Create(ctx, domain.Deref(existing.RbdSystemId), label, "auto", auth.CurrentUserName(ctx))
 	}
 	hasChildren, err := s.store.HasChildHierarchies(ctx, hierarchyId)
 	if err != nil {

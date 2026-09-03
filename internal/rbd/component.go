@@ -5,16 +5,23 @@ import (
 	"math"
 	"strings"
 
+	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/domain"
 	"github.com/Galang17061/strata-api/internal/reliability"
 )
 
 type ComponentService struct {
-	store *Store
+	store     *Store
+	snapshots *SnapshotService
 }
 
 func NewComponentService(store *Store) *ComponentService {
 	return &ComponentService{store: store}
+}
+
+func (s *ComponentService) WithSnapshots(snapshots *SnapshotService) *ComponentService {
+	s.snapshots = snapshots
+	return s
 }
 
 func (s *ComponentService) ScpList(ctx context.Context, search, sortBy, sortOrder string) ([]domain.ScpListItem, error) {
@@ -237,6 +244,10 @@ func (s *ComponentService) Delete(ctx context.Context, systemComponentId string)
 	component, err := s.store.FindComponent(ctx, systemComponentId)
 	if err != nil || component == nil {
 		return err
+	}
+	if s.snapshots != nil && domain.Deref(component.RbdSystemId) != "" {
+		label := "Before removing " + strings.TrimSpace(component.ComponentName)
+		s.snapshots.Create(ctx, domain.Deref(component.RbdSystemId), label, "auto", auth.CurrentUserName(ctx))
 	}
 	if err := s.store.DeleteComponents(ctx, []string{systemComponentId}); err != nil {
 		return err
