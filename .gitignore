@@ -5,3 +5,4 @@ upload/
 *.test
 *.out
 coverage.*
+backups/
