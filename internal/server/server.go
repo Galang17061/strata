@@ -40,6 +40,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewWeibullHandler(parameters).Mount(mux)
 	rbd.NewPoissonHandler(parameters).Mount(mux)
 	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore)).Mount(mux)
+	rbd.NewSnapshotHandler(rbd.NewSnapshotService(rbdStore)).Mount(mux)
 	totals.Mount(mux)
 	return mux
 }
