@@ -344,6 +344,16 @@ func (s *TotalService) calculateRecursive(ctx context.Context, hierarchy domain.
 	}, nil
 }
 
+func FellBelowFloor(previous *float64, current, floor float64) bool {
+	if current >= floor {
+		return false
+	}
+	if previous != nil && *previous < floor {
+		return false
+	}
+	return true
+}
+
 func (s *TotalService) notifyThreshold(ctx context.Context, system domain.RbdSystemDrawing, previous *domain.Number) {
 	if system.ReliabilityTotal == nil {
 		return
@@ -354,8 +364,12 @@ func (s *TotalService) notifyThreshold(ctx context.Context, system domain.RbdSys
 	}
 	floor := reliability.ToFloat(threshold.Decimal)
 	value := reliability.ToFloat(system.ReliabilityTotal.Decimal)
-	wasBelow := previous != nil && reliability.ToFloat(previous.Decimal) < floor
-	if value >= floor || wasBelow {
+	var before *float64
+	if previous != nil {
+		parsed := reliability.ToFloat(previous.Decimal)
+		before = &parsed
+	}
+	if !FellBelowFloor(before, value, floor) {
 		return
 	}
 	name := strings.TrimSpace(domain.Deref(system.SystemName))
