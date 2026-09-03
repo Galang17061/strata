@@ -47,6 +47,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewSnapshotHandler(snapshots).Mount(mux)
 	audit.NewHandler(auditStore).Mount(mux)
 	rbd.NewNotifyHandler(rbdStore).Mount(mux)
+	rbd.NewBatchHandler(rbd.NewBatchService(rbdStore, parameters, totalService)).Mount(mux)
 	totals.Mount(mux)
 	return mux
 }
