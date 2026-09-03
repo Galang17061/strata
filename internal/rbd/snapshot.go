@@ -117,6 +117,9 @@ func (s *SnapshotService) Restore(ctx context.Context, snapshotId string, system
 	if err := json.Unmarshal([]byte(snapshot.Payload), &payload); err != nil {
 		return nil, domain.InvalidOperation("This version cannot be read any more.")
 	}
+	if chain := CycleAmongHierarchies(payload.Hierarchies); chain != nil {
+		return nil, domain.InvalidOperation("This version is corrupt: its layers loop back on themselves (" + strings.Join(chain, " -> ") + ").")
+	}
 	result := &domain.SnapshotRestoreResult{}
 	err = s.store.Transact(ctx, func(tx *Store) error {
 		project, err := tx.FindProject(ctx, payload.System.ProjectId)

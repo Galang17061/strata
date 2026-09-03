@@ -126,6 +126,9 @@ func (s *HierarchyService) Create(ctx context.Context, request domain.HierarchyC
 				return nil, domain.InvalidOperation("Parent with ID " + parentId + " not found")
 			}
 		}
+		if err := s.ensureParentChainEnds(ctx, parentId); err != nil {
+			return nil, err
+		}
 	}
 	ids, err := s.store.HierarchyIds(ctx)
 	if err != nil {
@@ -185,6 +188,52 @@ func parseAfter(id, prefix string) (int, bool) {
 		number = number*10 + int(c-'0')
 	}
 	return number, true
+}
+
+const parentChainLimit = 64
+
+func CycleAmongHierarchies(rows []domain.Hierarchy) []string {
+	parents := map[string]string{}
+	for _, row := range rows {
+		parents[row.HierarchyId] = row.ParentId
+	}
+	for _, row := range rows {
+		seen := map[string]bool{}
+		node := row.HierarchyId
+		for {
+			if seen[node] {
+				chain := []string{node}
+				walker := parents[node]
+				for walker != node {
+					chain = append(chain, walker)
+					walker = parents[walker]
+				}
+				return chain
+			}
+			seen[node] = true
+			next, ok := parents[node]
+			if !ok {
+				break
+			}
+			node = next
+		}
+	}
+	return nil
+}
+
+func (s *HierarchyService) ensureParentChainEnds(ctx context.Context, parentId string) error {
+	node := parentId
+	for step := 0; step < parentChainLimit; step++ {
+		row, err := s.store.FindHierarchy(ctx, node)
+		if err != nil {
+			return err
+		}
+		if row == nil {
+			return nil
+		}
+		node = row.ParentId
+	}
+	return domain.InvalidOperation("The parent chain never reaches the system; it loops back on itself.")
 }
 
 func (s *HierarchyService) Update(ctx context.Context, hierarchyId string, request domain.HierarchyUpdate) (*domain.HierarchyView, error) {
