@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/Galang17061/strata-api/docs"
 	"github.com/Galang17061/strata-api/internal/account"
+	"github.com/Galang17061/strata-api/internal/audit"
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/config"
 	"github.com/Galang17061/strata-api/internal/mail"
@@ -21,6 +22,8 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	cipher := auth.NewCipher(cfg.PasswordKey)
 	mux := web.NewRouter()
 	mux.Use(auth.Authenticate(tokens))
+	auditStore := audit.NewStore(db)
+	mux.Use(audit.Middleware(auditStore))
 	mux.Get("/health", web.Health)
 	mux.Get("/files/*", web.StaticFiles(cfg.UploadDir))
 	mux.Get("/swagger/*", httpSwagger.WrapHandler)
@@ -42,6 +45,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewPoissonHandler(parameters).Mount(mux)
 	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore)).Mount(mux)
 	rbd.NewSnapshotHandler(snapshots).Mount(mux)
+	audit.NewHandler(auditStore).Mount(mux)
 	totals.Mount(mux)
 	return mux
 }
