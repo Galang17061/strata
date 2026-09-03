@@ -24,6 +24,7 @@ type Config struct {
 	MailUsername     string
 	MailPassword     string
 	MailFrom         string
+	FeedbackEmail    string
 }
 
 func Load() (Config, error) {
@@ -44,6 +45,7 @@ func Load() (Config, error) {
 		MailUsername:     os.Getenv("STRATA_MAIL_USERNAME"),
 		MailPassword:     os.Getenv("STRATA_MAIL_PASSWORD"),
 		MailFrom:         os.Getenv("STRATA_MAIL_FROM"),
+		FeedbackEmail:    os.Getenv("STRATA_FEEDBACK_EMAIL"),
 	}
 	if raw := os.Getenv("STRATA_JWT_EXPIRY_MINUTES"); raw != "" {
 		minutes, err := strconv.Atoi(raw)

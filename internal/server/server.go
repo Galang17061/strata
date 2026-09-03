@@ -11,6 +11,7 @@ import (
 	"github.com/Galang17061/strata-api/internal/audit"
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/config"
+	"github.com/Galang17061/strata-api/internal/feedback"
 	"github.com/Galang17061/strata-api/internal/mail"
 	"github.com/Galang17061/strata-api/internal/master"
 	"github.com/Galang17061/strata-api/internal/rbd"
@@ -46,6 +47,7 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore)).Mount(mux)
 	rbd.NewSnapshotHandler(snapshots).Mount(mux)
 	audit.NewHandler(auditStore).Mount(mux)
+	feedback.NewHandler(feedback.NewStore(db), mailer, cfg.FeedbackEmail).Mount(mux)
 	rbd.NewNotifyHandler(rbdStore).Mount(mux)
 	rbd.NewBatchHandler(rbd.NewBatchService(rbdStore, parameters, totalService)).Mount(mux)
 	totals.Mount(mux)
