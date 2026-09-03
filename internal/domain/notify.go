@@ -15,5 +15,6 @@ type BatchRecalculateRequest struct {
 type BatchRecalculateResult struct {
 	Components       int      `json:"components"`
 	Unfitted         []string `json:"unfitted"`
+	Uncalculated     []string `json:"uncalculated"`
 	ReliabilityTotal *float64 `json:"reliabilityTotal"`
 }

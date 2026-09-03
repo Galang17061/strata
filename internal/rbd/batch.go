@@ -78,10 +78,15 @@ func (s *BatchService) RecalculateSystem(ctx context.Context, rbdSystemId string
 		return nil, err
 	}
 	calcCtx := WithUser(ctx, currentUser)
+	uncalculated := []string{}
 	for _, root := range roots {
 		envelope := s.totals.CalculateHierarchy(calcCtx, root.HierarchyId)
 		if envelope.StatusCode >= http.StatusBadRequest {
-			return nil, domain.InvalidOperation(envelope.Message)
+			name := strings.TrimSpace(domain.Deref(root.SubSystemName))
+			if name == "" {
+				name = root.HierarchyId
+			}
+			uncalculated = append(uncalculated, name)
 		}
 	}
 	refreshed, err := s.store.FindSystem(ctx, rbdSystemId)
@@ -96,6 +101,7 @@ func (s *BatchService) RecalculateSystem(ctx context.Context, rbdSystemId string
 	return &domain.BatchRecalculateResult{
 		Components:       len(components),
 		Unfitted:         unfitted,
+		Uncalculated:     uncalculated,
 		ReliabilityTotal: total,
 	}, nil
 }
