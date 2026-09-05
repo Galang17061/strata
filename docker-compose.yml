@@ -141,6 +141,22 @@ services:
     networks:
       - strata-network
 
+  strata-load:
+    image: grafana/k6:latest
+    container_name: strata-load
+    cpus: 1.5
+    mem_limit: 512m
+    profiles:
+      - load
+    environment:
+      TARGET: ${K6_TARGET:-http://strata-api-test:5000/api}
+      MODE: ${K6_MODE:-smoke}
+    volumes:
+      - ./ops/load:/scripts:ro
+    entrypoint: ["k6", "run", "/scripts/journeys.js"]
+    networks:
+      - strata-network
+
 volumes:
   strata-db-data:
   strata-upload:
