@@ -61,6 +61,28 @@ services:
     networks:
       - strata-network
 
+  strata-api-test:
+    image: strata-api
+    container_name: strata-api-test
+    cpus: 3
+    mem_limit: 384m
+    env_file: .env
+    environment:
+      STRATA_PORT: "5000"
+      STRATA_DB_CONNECTION: ${STRATA_TEST_DB_CONNECTION:-}
+      STRATA_UPLOAD_DIR: /app/upload
+      STRATA_MIGRATIONS_DIR: /app/migrations
+    entrypoint: ["sh", "-c", "strata migrate && exec strata"]
+    ports:
+      - "5001:5000"
+    profiles:
+      - load
+    depends_on:
+      strata-db:
+        condition: service_healthy
+    networks:
+      - strata-network
+
   strata-mail:
     image: axllent/mailpit:latest
     container_name: strata-mail
