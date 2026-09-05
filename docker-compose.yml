@@ -55,9 +55,63 @@ services:
     networks:
       - strata-network
 
+  strata-mail:
+    image: axllent/mailpit:latest
+    container_name: strata-mail
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    volumes:
+      - strata-mail-data:/data
+    networks:
+      - strata-network
+
+  strata-uptime:
+    image: louislam/uptime-kuma:1
+    container_name: strata-uptime
+    ports:
+      - "3001:3001"
+    volumes:
+      - strata-uptime-data:/app/data
+    networks:
+      - strata-network
+
+  strata-prometheus:
+    image: prom/prometheus:latest
+    container_name: strata-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - strata-prometheus-data:/prometheus
+    networks:
+      - strata-network
+
+  strata-grafana:
+    image: grafana/grafana-oss:latest
+    container_name: strata-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${STRATA_GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${STRATA_GRAFANA_PASSWORD:-admin123}
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./ops/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - strata-grafana-data:/var/lib/grafana
+    depends_on:
+      - strata-prometheus
+    networks:
+      - strata-network
+
 volumes:
   strata-db-data:
   strata-upload:
+  strata-mail-data:
+  strata-uptime-data:
+  strata-prometheus-data:
+  strata-grafana-data:
 
 networks:
   strata-network:
