@@ -7,6 +7,7 @@ set +a
 sh ops/backup.sh
 LATEST=$(ls -1t "${STRATA_BACKUP_DIR:-./backups}"/strata-*.bak | head -1)
 docker cp "$LATEST" strata-db:/var/opt/mssql/loadtest.bak
+docker exec -u root strata-db chown mssql /var/opt/mssql/loadtest.bak
 docker exec strata-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$STRATA_DB_SA_PASSWORD" -C -Q "IF DB_ID(N'stratatest') IS NOT NULL BEGIN ALTER DATABASE stratatest SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE stratatest; END RESTORE DATABASE stratatest FROM DISK = N'/var/opt/mssql/loadtest.bak' WITH MOVE N'strata' TO N'/var/opt/mssql/data/stratatest.mdf', MOVE N'strata_log' TO N'/var/opt/mssql/data/stratatest_log.ldf', REPLACE"
 docker exec strata-db rm -f /var/opt/mssql/loadtest.bak
 if ! grep -q "^STRATA_TEST_DB_CONNECTION=" .env; then
