@@ -14,6 +14,7 @@ import (
 	"github.com/Galang17061/strata-api/internal/feedback"
 	"github.com/Galang17061/strata-api/internal/mail"
 	"github.com/Galang17061/strata-api/internal/master"
+	"github.com/Galang17061/strata-api/internal/metrics"
 	"github.com/Galang17061/strata-api/internal/rbd"
 	"github.com/Galang17061/strata-api/internal/web"
 )
@@ -22,9 +23,12 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	tokens := auth.NewTokenIssuer(cfg.JWTKey, cfg.JWTIssuer, cfg.JWTAudience, cfg.JWTExpiryMinutes)
 	cipher := auth.NewCipher(cfg.PasswordKey)
 	mux := web.NewRouter()
+	pulse := metrics.NewCollector()
+	mux.Use(pulse.Middleware)
 	mux.Use(auth.Authenticate(tokens))
 	auditStore := audit.NewStore(db)
 	mux.Use(audit.Middleware(auditStore))
+	mux.Get("/metrics", pulse.Handler)
 	mux.Get("/health", web.Health)
 	mux.Get("/files/*", web.StaticFiles(cfg.UploadDir))
 	mux.Get("/swagger/*", httpSwagger.WrapHandler)
