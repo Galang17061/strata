@@ -25,6 +25,8 @@ type Config struct {
 	MailPassword     string
 	MailFrom         string
 	FeedbackEmail    string
+	GAConcurrency    int
+	GAQueueWait      int
 }
 
 func Load() (Config, error) {
@@ -46,6 +48,22 @@ func Load() (Config, error) {
 		MailPassword:     os.Getenv("STRATA_MAIL_PASSWORD"),
 		MailFrom:         os.Getenv("STRATA_MAIL_FROM"),
 		FeedbackEmail:    os.Getenv("STRATA_FEEDBACK_EMAIL"),
+		GAConcurrency:    2,
+		GAQueueWait:      10,
+	}
+	if raw := os.Getenv("STRATA_GA_CONCURRENCY"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 1 {
+			return cfg, errors.New("STRATA_GA_CONCURRENCY must be a whole number of at least 1")
+		}
+		cfg.GAConcurrency = parsed
+	}
+	if raw := os.Getenv("STRATA_GA_QUEUE_WAIT"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 0 {
+			return cfg, errors.New("STRATA_GA_QUEUE_WAIT must be zero or more seconds")
+		}
+		cfg.GAQueueWait = parsed
 	}
 	if raw := os.Getenv("STRATA_JWT_EXPIRY_MINUTES"); raw != "" {
 		minutes, err := strconv.Atoi(raw)

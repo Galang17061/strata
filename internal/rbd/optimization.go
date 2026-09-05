@@ -14,10 +14,16 @@ import (
 
 type OptimizationService struct {
 	store *Store
+	gate  *Gate
 }
 
 func NewOptimizationService(store *Store) *OptimizationService {
 	return &OptimizationService{store: store}
+}
+
+func (s *OptimizationService) WithGate(gate *Gate) *OptimizationService {
+	s.gate = gate
+	return s
 }
 
 type builtProblem struct {
@@ -387,6 +393,11 @@ func (s *OptimizationService) Preview(ctx context.Context, request domain.Optimi
 	if err != nil {
 		return nil, err
 	}
+	leave, err := s.gate.Enter(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer leave()
 	built, err := s.buildProblem(ctx, rbdSystemId, request.RunningHours, request.Locks)
 	if err != nil {
 		return nil, err

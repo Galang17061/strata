@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -48,7 +49,8 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewFailureHandler(rbd.NewFailureService(rbdStore), parameters).Mount(mux)
 	rbd.NewWeibullHandler(parameters).Mount(mux)
 	rbd.NewPoissonHandler(parameters).Mount(mux)
-	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore)).Mount(mux)
+	gate := rbd.NewGate(cfg.GAConcurrency, time.Duration(cfg.GAQueueWait)*time.Second)
+	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore).WithGate(gate)).Mount(mux)
 	rbd.NewSnapshotHandler(snapshots).Mount(mux)
 	audit.NewHandler(auditStore).Mount(mux)
 	feedback.NewHandler(feedback.NewStore(db), mailer, cfg.FeedbackEmail).Mount(mux)
