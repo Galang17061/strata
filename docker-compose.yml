@@ -2,6 +2,8 @@ services:
   strata-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: strata-db
+    cpus: 5
+    mem_limit: 2000m
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_PID: Developer
@@ -23,6 +25,8 @@ services:
     build: .
     image: strata-api
     container_name: strata-api
+    cpus: 1.5
+    mem_limit: 320m
     env_file: .env
     environment:
       STRATA_PORT: "5000"
@@ -48,6 +52,8 @@ services:
         NEXT_PUBLIC_ACCESS_TOKEN_NAME: ${STRATA_WEB_TOKEN_NAME:-strata_token}
     image: strata-web
     container_name: strata-web
+    cpus: 1
+    mem_limit: 192m
     ports:
       - "${STRATA_WEB_PORT:-3000}:80"
     depends_on:
@@ -58,6 +64,8 @@ services:
   strata-mail:
     image: axllent/mailpit:latest
     container_name: strata-mail
+    cpus: 0.5
+    mem_limit: 96m
     environment:
       MP_DATABASE: /data/mailpit.db
     ports:
@@ -71,6 +79,8 @@ services:
   strata-uptime:
     image: louislam/uptime-kuma:1
     container_name: strata-uptime
+    cpus: 0.5
+    mem_limit: 192m
     ports:
       - "3001:3001"
     volumes:
@@ -81,6 +91,8 @@ services:
   strata-prometheus:
     image: prom/prometheus:latest
     container_name: strata-prometheus
+    cpus: 0.5
+    mem_limit: 224m
     ports:
       - "9090:9090"
     volumes:
@@ -92,6 +104,8 @@ services:
   strata-grafana:
     image: grafana/grafana-oss:latest
     container_name: strata-grafana
+    cpus: 1
+    mem_limit: 256m
     environment:
       GF_SECURITY_ADMIN_USER: ${STRATA_GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${STRATA_GRAFANA_PASSWORD:-admin123}
