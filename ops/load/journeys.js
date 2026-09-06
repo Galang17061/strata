@@ -34,6 +34,7 @@ const profiles = {
           { duration: "2m", target: 150 },
           { duration: "2m", target: 250 },
           { duration: "2m", target: 400 },
+          { duration: "2m", target: 500 },
           { duration: "1m", target: 0 },
         ],
       },
