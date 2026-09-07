@@ -2,7 +2,7 @@
 
 Strata is a reliability analysis service built around the reliability block diagram method. An engineer models a system as a tree of subsystems and components, draws how the blocks are wired (series, parallel, mixed, k-out-of-n), records every failure a component has had, and Strata works out, from the components upward, how likely each block and the whole system is to still be working after a given number of running hours. It also draws that chance as a curve over time.
 
-This repository is the backend. It serves a REST API for the Next.js frontend, keeps its data in SQL Server, and is shipped as a single static binary.
+This repository is the backend. It serves a REST API for the Next.js frontend, keeps its data in PostgreSQL, and is shipped as a single static binary.
 
 ## What it does
 
@@ -38,8 +38,8 @@ Every setting is an environment variable with the `STRATA_` prefix. Copy `.env.e
 | Variable | Meaning |
 |---|---|
 | `STRATA_PORT` | Port the HTTP server listens on (default `5000`) |
-| `STRATA_DB_CONNECTION` | SQL Server URL, for example `sqlserver://sa:secret@localhost:1433?database=strata&encrypt=disable&TrustServerCertificate=true` |
-| `STRATA_DB_SA_PASSWORD` | Password given to the SQL Server container started by docker compose |
+| `STRATA_DB_CONNECTION` | PostgreSQL URL, for example `postgres://postgres:secret@localhost:5432/strata?sslmode=disable` |
+| `STRATA_DB_SA_PASSWORD` | Password given to the PostgreSQL container started by docker compose |
 | `STRATA_JWT_KEY` | HMAC secret for bearer tokens, at least 64 characters |
 | `STRATA_JWT_ISSUER`, `STRATA_JWT_AUDIENCE` | Claims written into every token (defaults `issuer`, `audience`) |
 | `STRATA_JWT_EXPIRY_MINUTES` | Token lifetime (default `10080`, seven days) |
@@ -49,7 +49,7 @@ Every setting is an environment variable with the `STRATA_` prefix. Copy `.env.e
 
 ## Running locally
 
-Requirements: Go 1.25 or newer and a reachable SQL Server.
+Requirements: Go 1.25 or newer and a reachable PostgreSQL.
 
 ```
 cp .env.example .env
@@ -62,7 +62,7 @@ go build -o bin/strata ./cmd/strata
 
 ## Running with Docker
 
-The compose file starts two services on the `strata-network` network: `strata-db` (SQL Server 2022 on port 1433, data kept in the `strata-db-data` volume) and `strata-api` (port 5000, uploads kept in the `strata-upload` volume). The API container runs the migration and then serves.
+The compose file starts two services on the `strata-network` network: `strata-db` (PostgreSQL 17 on port 5432, data kept in the `strata-pg-data` volume) and `strata-api` (port 5000, uploads kept in the `strata-upload` volume). The API container runs the migration and then serves.
 
 ```
 cp .env.example .env
@@ -70,7 +70,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-`.env` feeds both services: `STRATA_DB_SA_PASSWORD` sets the SQL Server password and `STRATA_DB_CONNECTION` must point at `strata-db:1433` with the same password. When the API runs outside Docker against that database, use `localhost:1433` in the URL instead.
+`.env` feeds both services: `STRATA_DB_SA_PASSWORD` sets the PostgreSQL password and `STRATA_DB_CONNECTION` must point at `strata-db:5432` with the same password. When the API runs outside Docker against that database, use `localhost:5432` in the URL instead.
 
 ## Tests
 

@@ -1,11 +1,11 @@
 # Restoring Strata from a backup
 
-This runbook brings a dead or corrupted deployment back from the latest `.bak` file.
+This runbook brings a dead or corrupted deployment back from the latest `.dump` file.
 Practise it before you need it: a backup that has never been restored is a hope, not a plan.
 
 ## What you need
 
-- The most recent `strata-*.bak` file (from `ops/backup.sh`, fetched back from wherever
+- The most recent `strata-*.dump` file (from `ops/backup.sh`, fetched back from wherever
   you keep the off-machine copies).
 - The `.env` of the deployment (or at least `STRATA_DB_SA_PASSWORD` and the JWT and
   password-cipher keys — without `STRATA_PASSWORD_KEY` the stored passwords are useless).
@@ -22,7 +22,7 @@ Practise it before you need it: a backup that has never been restored is a hope,
 2. Copy the backup into the container:
 
    ```sh
-   docker cp ./strata-20260903-020000.bak strata-db:/var/opt/mssql/restore.bak
+   docker cp ./strata-20260907-020000.dump strata-db:/tmp/restore.dump
    ```
 
 3. Restore over the `strata` database. The service must not be writing while this runs,
@@ -30,7 +30,9 @@ Practise it before you need it: a backup that has never been restored is a hope,
 
    ```sh
    docker compose stop strata-api
-   docker exec strata-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$STRATA_DB_SA_PASSWORD" -C -Q "ALTER DATABASE strata SET SINGLE_USER WITH ROLLBACK IMMEDIATE; RESTORE DATABASE strata FROM DISK = N'/var/opt/mssql/restore.bak' WITH REPLACE; ALTER DATABASE strata SET MULTI_USER"
+   docker exec strata-db psql -U postgres -c "DROP DATABASE IF EXISTS strata WITH (FORCE);"
+   docker exec strata-db psql -U postgres -c "CREATE DATABASE strata;"
+   docker exec strata-db pg_restore -U postgres -d strata /tmp/restore.dump
    ```
 
 4. Start the service again (its entrypoint reapplies migrations, which are idempotent):
@@ -44,13 +46,13 @@ Practise it before you need it: a backup that has never been restored is a hope,
    - `curl http://localhost:5000/health` answers 200.
    - Sign in to the web app and open a project you know; spot-check one reliability
      figure against the number you remember.
-   - `docker exec strata-db ... -Q "SELECT COUNT(*) FROM strata.dbo.MasterProject"`
+   - `docker exec strata-db psql -U postgres -d strata -c "SELECT COUNT(*) FROM dbo.MasterProject"`
      returns a believable count.
 
 6. Clean up:
 
    ```sh
-   docker exec strata-db rm /var/opt/mssql/restore.bak
+   docker exec strata-db rm /tmp/restore.dump
    ```
 
 ## Scheduling backups
