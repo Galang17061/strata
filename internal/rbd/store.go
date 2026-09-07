@@ -60,13 +60,13 @@ func optional[T any](value *T, err error) (*T, error) {
 
 func (s *Store) FindSystem(ctx context.Context, rbdSystemId string) (*domain.RbdSystemDrawing, error) {
 	var row domain.RbdSystemDrawing
-	err := s.q.GetContext(ctx, &row, `SELECT `+domain.RbdSystemColumns+` FROM dbo.RbdSystemDrawing WHERE rbd_system_id = @p1`, rbdSystemId)
+	err := s.q.GetContext(ctx, &row, `SELECT `+domain.RbdSystemColumns+` FROM dbo.RbdSystemDrawing WHERE rbd_system_id = $1`, rbdSystemId)
 	return optional(&row, err)
 }
 
 func (s *Store) FirstSystem(ctx context.Context) (*domain.RbdSystemDrawing, error) {
 	var row domain.RbdSystemDrawing
-	err := s.q.GetContext(ctx, &row, `SELECT TOP 1 `+domain.RbdSystemColumns+` FROM dbo.RbdSystemDrawing ORDER BY rbd_system_id`)
+	err := s.q.GetContext(ctx, &row, `SELECT `+domain.RbdSystemColumns+` FROM dbo.RbdSystemDrawing ORDER BY rbd_system_id LIMIT 1`)
 	return optional(&row, err)
 }
 
@@ -76,7 +76,7 @@ func (s *Store) ListSystemViews(ctx context.Context, projectId *string) ([]domai
 	if projectId == nil {
 		return rows, s.q.SelectContext(ctx, &rows, query+` ORDER BY r.rbd_system_id`)
 	}
-	return rows, s.q.SelectContext(ctx, &rows, query+` WHERE r.project_id = @p1 ORDER BY r.rbd_system_id`, *projectId)
+	return rows, s.q.SelectContext(ctx, &rows, query+` WHERE r.project_id = $1 ORDER BY r.rbd_system_id`, *projectId)
 }
 
 func (s *Store) SystemIds(ctx context.Context) ([]string, error) {
@@ -85,25 +85,25 @@ func (s *Store) SystemIds(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) InsertSystem(ctx context.Context, r domain.RbdSystemDrawing) error {
-	_, err := s.q.ExecContext(ctx, `INSERT INTO dbo.RbdSystemDrawing (`+domain.RbdSystemColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11)`,
+	_, err := s.q.ExecContext(ctx, `INSERT INTO dbo.RbdSystemDrawing (`+domain.RbdSystemColumns+`) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		r.RbdSystemId, r.ProjectId, r.DrawingName, r.SystemName, r.RunningHours, r.ReliabilityTotal, r.Formula, r.CreatedAt, r.UpdatedAt, r.CreatedBy, r.UpdatedBy)
 	return err
 }
 
 func (s *Store) UpdateSystem(ctx context.Context, r domain.RbdSystemDrawing) error {
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.RbdSystemDrawing SET project_id = @p2, drawing_name = @p3, system_name = @p4, running_hours = @p5, reliability_total = @p6, formula = @p7, updated_at = @p8, updated_by = @p9 WHERE rbd_system_id = @p1`,
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.RbdSystemDrawing SET project_id = $2, drawing_name = $3, system_name = $4, running_hours = $5, reliability_total = $6, formula = $7, updated_at = $8, updated_by = $9 WHERE rbd_system_id = $1`,
 		r.RbdSystemId, r.ProjectId, r.DrawingName, r.SystemName, r.RunningHours, r.ReliabilityTotal, r.Formula, r.UpdatedAt, r.UpdatedBy)
 	return err
 }
 
 func (s *Store) DeleteSystem(ctx context.Context, rbdSystemId string) error {
-	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.RbdSystemDrawing WHERE rbd_system_id = @p1`, rbdSystemId)
+	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.RbdSystemDrawing WHERE rbd_system_id = $1`, rbdSystemId)
 	return err
 }
 
 func (s *Store) FindProject(ctx context.Context, projectId string) (*domain.MasterProject, error) {
 	var row domain.MasterProject
-	err := s.q.GetContext(ctx, &row, `SELECT project_id, project_name, hierarchy_depth, created_at, updated_at, created_by, updated_by FROM dbo.MasterProject WHERE project_id = @p1`, projectId)
+	err := s.q.GetContext(ctx, &row, `SELECT project_id, project_name, hierarchy_depth, created_at, updated_at, created_by, updated_by FROM dbo.MasterProject WHERE project_id = $1`, projectId)
 	return optional(&row, err)
 }
 
@@ -111,7 +111,7 @@ func (s *Store) TouchSystem(ctx context.Context, rbdSystemId string) error {
 	if rbdSystemId == "" {
 		return nil
 	}
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.RbdSystemDrawing SET updated_at = @p2 WHERE rbd_system_id = @p1`, rbdSystemId, domain.Now())
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.RbdSystemDrawing SET updated_at = $2 WHERE rbd_system_id = $1`, rbdSystemId, domain.Now())
 	return err
 }
 
@@ -133,7 +133,7 @@ func (s *Store) TouchSystemOfComponent(ctx context.Context, systemComponentId st
 
 func (s *Store) ProjectDepthOfSystem(ctx context.Context, rbdSystemId string) (int, error) {
 	var depth int
-	err := s.q.GetContext(ctx, &depth, `SELECT p.hierarchy_depth FROM dbo.RbdSystemDrawing r INNER JOIN dbo.MasterProject p ON p.project_id = r.project_id WHERE r.rbd_system_id = @p1`, rbdSystemId)
+	err := s.q.GetContext(ctx, &depth, `SELECT p.hierarchy_depth FROM dbo.RbdSystemDrawing r INNER JOIN dbo.MasterProject p ON p.project_id = r.project_id WHERE r.rbd_system_id = $1`, rbdSystemId)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 3, nil
 	}
@@ -145,18 +145,18 @@ func (s *Store) ProjectDepthOfSystem(ctx context.Context, rbdSystemId string) (i
 
 func (s *Store) FindHierarchy(ctx context.Context, hierarchyId string) (*domain.Hierarchy, error) {
 	var row domain.Hierarchy
-	err := s.q.GetContext(ctx, &row, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE hierarchy_id = @p1`, hierarchyId)
+	err := s.q.GetContext(ctx, &row, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE hierarchy_id = $1`, hierarchyId)
 	return optional(&row, err)
 }
 
 func (s *Store) HierarchiesOfSystem(ctx context.Context, rbdSystemId string) ([]domain.Hierarchy, error) {
 	rows := []domain.Hierarchy{}
-	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE rbd_system_id = @p1 ORDER BY hierarchy_id`, rbdSystemId)
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE rbd_system_id = $1 ORDER BY hierarchy_id`, rbdSystemId)
 }
 
 func (s *Store) HierarchiesOfSystemByLevel(ctx context.Context, rbdSystemId string, includeVirtual bool) ([]domain.Hierarchy, error) {
 	rows := []domain.Hierarchy{}
-	query := `SELECT ` + domain.HierarchyColumns + ` FROM dbo.Hierarchy WHERE rbd_system_id = @p1`
+	query := `SELECT ` + domain.HierarchyColumns + ` FROM dbo.Hierarchy WHERE rbd_system_id = $1`
 	if !includeVirtual {
 		query += ` AND level <> 999`
 	}
@@ -165,12 +165,12 @@ func (s *Store) HierarchiesOfSystemByLevel(ctx context.Context, rbdSystemId stri
 
 func (s *Store) ChildHierarchies(ctx context.Context, parentId string) ([]domain.Hierarchy, error) {
 	rows := []domain.Hierarchy{}
-	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE parent_id = @p1 ORDER BY hierarchy_id`, parentId)
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE parent_id = $1 ORDER BY hierarchy_id`, parentId)
 }
 
 func (s *Store) LastHierarchyId(ctx context.Context) (*string, error) {
 	var id string
-	err := s.q.GetContext(ctx, &id, `SELECT TOP 1 hierarchy_id FROM dbo.Hierarchy ORDER BY hierarchy_id DESC`)
+	err := s.q.GetContext(ctx, &id, `SELECT hierarchy_id FROM dbo.Hierarchy ORDER BY hierarchy_id DESC LIMIT 1`)
 	return optional(&id, err)
 }
 
@@ -181,18 +181,18 @@ func (s *Store) HierarchyIds(ctx context.Context) ([]string, error) {
 
 func (s *Store) HierarchyCodesOfSystem(ctx context.Context, rbdSystemId, prefix string) ([]string, error) {
 	codes := []string{}
-	return codes, s.q.SelectContext(ctx, &codes, `SELECT formula_code FROM dbo.Hierarchy WHERE rbd_system_id = @p1 AND formula_code IS NOT NULL AND formula_code LIKE @p2 + '%' ORDER BY hierarchy_id`, rbdSystemId, prefix)
+	return codes, s.q.SelectContext(ctx, &codes, `SELECT formula_code FROM dbo.Hierarchy WHERE rbd_system_id = $1 AND formula_code IS NOT NULL AND formula_code LIKE $2 + '%' ORDER BY hierarchy_id`, rbdSystemId, prefix)
 }
 
 func (s *Store) HierarchyCodeExists(ctx context.Context, rbdSystemId, code string) (bool, error) {
 	var count int
-	err := s.q.GetContext(ctx, &count, `SELECT COUNT(1) FROM dbo.Hierarchy WHERE rbd_system_id = @p1 AND formula_code = @p2`, rbdSystemId, code)
+	err := s.q.GetContext(ctx, &count, `SELECT COUNT(1) FROM dbo.Hierarchy WHERE rbd_system_id = $1 AND formula_code = $2`, rbdSystemId, code)
 	return count > 0, err
 }
 
 func (s *Store) InsertHierarchies(ctx context.Context, rows []domain.Hierarchy) error {
 	for _, h := range rows {
-		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.Hierarchy (`+domain.HierarchyColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14)`,
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.Hierarchy (`+domain.HierarchyColumns+`) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
 			h.HierarchyId, h.RbdSystemId, h.ParentId, h.Level, h.SubSystemName, h.Formula, h.FormulaCode, h.ConnectionType, h.RealibilityValue, h.RunningHours, h.PositionX, h.PositionY, h.SourceId, h.TargetId); err != nil {
 			return err
 		}
@@ -201,7 +201,7 @@ func (s *Store) InsertHierarchies(ctx context.Context, rows []domain.Hierarchy) 
 }
 
 func (s *Store) UpdateHierarchy(ctx context.Context, h domain.Hierarchy) error {
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.Hierarchy SET rbd_system_id = @p2, parent_id = @p3, level = @p4, sub_system_name = @p5, formula = @p6, formula_code = @p7, connection_type = @p8, realibility_value = @p9, running_hours = @p10, position_x = @p11, position_y = @p12, source_id = @p13, target_id = @p14 WHERE hierarchy_id = @p1`,
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.Hierarchy SET rbd_system_id = $2, parent_id = $3, level = $4, sub_system_name = $5, formula = $6, formula_code = $7, connection_type = $8, realibility_value = $9, running_hours = $10, position_x = $11, position_y = $12, source_id = $13, target_id = $14 WHERE hierarchy_id = $1`,
 		h.HierarchyId, h.RbdSystemId, h.ParentId, h.Level, h.SubSystemName, h.Formula, h.FormulaCode, h.ConnectionType, h.RealibilityValue, h.RunningHours, h.PositionX, h.PositionY, h.SourceId, h.TargetId)
 	return err
 }
@@ -227,18 +227,18 @@ func (s *Store) DeleteHierarchies(ctx context.Context, ids []string) error {
 
 func (s *Store) FindComponent(ctx context.Context, systemComponentId string) (*domain.SystemComponentProperties, error) {
 	var row domain.SystemComponentProperties
-	err := s.q.GetContext(ctx, &row, `SELECT `+domain.SystemComponentColumns+` FROM dbo.SystemComponentProperties WHERE system_component_id = @p1`, systemComponentId)
+	err := s.q.GetContext(ctx, &row, `SELECT `+domain.SystemComponentColumns+` FROM dbo.SystemComponentProperties WHERE system_component_id = $1`, systemComponentId)
 	return optional(&row, err)
 }
 
 func (s *Store) ComponentsOfSystem(ctx context.Context, rbdSystemId string) ([]domain.SystemComponentProperties, error) {
 	rows := []domain.SystemComponentProperties{}
-	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.SystemComponentColumns+` FROM dbo.SystemComponentProperties WHERE rbd_system_id = @p1 ORDER BY system_component_id`, rbdSystemId)
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT `+domain.SystemComponentColumns+` FROM dbo.SystemComponentProperties WHERE rbd_system_id = $1 ORDER BY system_component_id`, rbdSystemId)
 }
 
 func (s *Store) ComponentsOfParent(ctx context.Context, parentId string, activeOnly bool) ([]domain.SystemComponentProperties, error) {
 	rows := []domain.SystemComponentProperties{}
-	query := `SELECT ` + domain.SystemComponentColumns + ` FROM dbo.SystemComponentProperties WHERE parent_id = @p1`
+	query := `SELECT ` + domain.SystemComponentColumns + ` FROM dbo.SystemComponentProperties WHERE parent_id = $1`
 	if activeOnly {
 		query += ` AND active = 1`
 	}
@@ -247,7 +247,7 @@ func (s *Store) ComponentsOfParent(ctx context.Context, parentId string, activeO
 
 func (s *Store) LastComponentId(ctx context.Context) (*string, error) {
 	var id string
-	err := s.q.GetContext(ctx, &id, `SELECT TOP 1 system_component_id FROM dbo.SystemComponentProperties ORDER BY system_component_id DESC`)
+	err := s.q.GetContext(ctx, &id, `SELECT system_component_id FROM dbo.SystemComponentProperties ORDER BY system_component_id DESC LIMIT 1`)
 	return optional(&id, err)
 }
 
@@ -258,18 +258,18 @@ func (s *Store) ComponentIds(ctx context.Context) ([]string, error) {
 
 func (s *Store) ComponentCodesStartingWith(ctx context.Context, prefix string) ([]string, error) {
 	codes := []string{}
-	return codes, s.q.SelectContext(ctx, &codes, `SELECT formula_code FROM dbo.SystemComponentProperties WHERE formula_code IS NOT NULL AND formula_code LIKE @p1 + '%' ORDER BY system_component_id`, prefix)
+	return codes, s.q.SelectContext(ctx, &codes, `SELECT formula_code FROM dbo.SystemComponentProperties WHERE formula_code IS NOT NULL AND formula_code LIKE $1 + '%' ORDER BY system_component_id`, prefix)
 }
 
 func (s *Store) ComponentCodeExists(ctx context.Context, rbdSystemId, code string) (bool, error) {
 	var count int
-	err := s.q.GetContext(ctx, &count, `SELECT COUNT(1) FROM dbo.SystemComponentProperties WHERE rbd_system_id = @p1 AND formula_code = @p2`, rbdSystemId, code)
+	err := s.q.GetContext(ctx, &count, `SELECT COUNT(1) FROM dbo.SystemComponentProperties WHERE rbd_system_id = $1 AND formula_code = $2`, rbdSystemId, code)
 	return count > 0, err
 }
 
 func (s *Store) InsertComponents(ctx context.Context, rows []domain.SystemComponentProperties) error {
 	for _, c := range rows {
-		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentProperties (`+domain.SystemComponentColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30)`,
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentProperties (`+domain.SystemComponentColumns+`) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)`,
 			c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, domain.DerefInt(c.AllowedFailures, 0), c.CreatedAt, c.UpdatedAt, c.CreatedBy, c.UpdatedBy); err != nil {
 			return err
 		}
@@ -278,7 +278,7 @@ func (s *Store) InsertComponents(ctx context.Context, rows []domain.SystemCompon
 }
 
 func (s *Store) UpdateComponent(ctx context.Context, c domain.SystemComponentProperties) error {
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.SystemComponentProperties SET rbd_system_id = @p2, parent_id = @p3, component_name = @p4, component_tag_number = @p5, active = @p6, vendor = @p7, formula_code = @p8, distribution_type = @p9, failure_rate = @p10, running_hours = @p11, scale_parameter = @p12, shape_parameter = @p13, connection_type = @p14, connection_to_id = @p15, position_x = @p16, position_y = @p17, source_position = @p18, target_position = @p19, id_node = @p20, reliability_value = @p21, active_component = @p22, total_component = @p23, regresi = @p24, mtbf = @p25, allowed_failures = @p28, updated_at = @p26, updated_by = @p27 WHERE system_component_id = @p1`,
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.SystemComponentProperties SET rbd_system_id = $2, parent_id = $3, component_name = $4, component_tag_number = $5, active = $6, vendor = $7, formula_code = $8, distribution_type = $9, failure_rate = $10, running_hours = $11, scale_parameter = $12, shape_parameter = $13, connection_type = $14, connection_to_id = $15, position_x = $16, position_y = $17, source_position = $18, target_position = $19, id_node = $20, reliability_value = $21, active_component = $22, total_component = $23, regresi = $24, mtbf = $25, allowed_failures = $28, updated_at = $26, updated_by = $27 WHERE system_component_id = $1`,
 		c.SystemComponentId, c.RbdSystemId, domain.Deref(c.ParentId), c.ComponentName, c.ComponentTagNumber, c.Active, c.Vendor, c.FormulaCode, c.DistributionType, c.FailureRate, c.RunningHours, c.ScaleParameter, c.ShapeParameter, c.ConnectionType, c.ConnectionToId, c.PositionX, c.PositionY, c.SourcePosition, c.TargetPosition, c.IdNode, c.ReliabilityValue, c.ActiveComponent, c.TotalComponent, c.Regresi, c.Mtbf, c.UpdatedAt, c.UpdatedBy, domain.DerefInt(c.AllowedFailures, 0))
 	return err
 }
@@ -349,7 +349,7 @@ func (s *Store) DeleteEdgesTouching(ctx context.Context, nodeIds []string) error
 
 func (s *Store) InsertEdges(ctx context.Context, rows []domain.SystemComponentDrawing) error {
 	for _, edge := range rows {
-		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentDrawing (`+domain.EdgeColumns+`) VALUES (@p1, @p2, @p3)`, edge.IdEdge, edge.SourceId, edge.TargetId); err != nil {
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemComponentDrawing (`+domain.EdgeColumns+`) VALUES ($1, $2, $3)`, edge.IdEdge, edge.SourceId, edge.TargetId); err != nil {
 			return err
 		}
 	}
@@ -357,7 +357,7 @@ func (s *Store) InsertEdges(ctx context.Context, rows []domain.SystemComponentDr
 }
 
 func (s *Store) DeleteHistoryOfSystem(ctx context.Context, rbdSystemId string) error {
-	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityHistory WHERE rbd_system_id = @p1`, rbdSystemId)
+	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityHistory WHERE rbd_system_id = $1`, rbdSystemId)
 	return err
 }
 
@@ -368,14 +368,14 @@ func (s *Store) MasterComponentsWithVendor(ctx context.Context) ([]domain.Master
 
 func (s *Store) MasterComponentsByName(ctx context.Context, name string) ([]domain.MasterComponentWithVendor, error) {
 	rows := []domain.MasterComponentWithVendor{}
-	return rows, s.q.SelectContext(ctx, &rows, `SELECT c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = @p1 ORDER BY c.component_id`, name)
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = $1 ORDER BY c.component_id`, name)
 }
 
 func (s *Store) MasterComponentByNameAndVendor(ctx context.Context, name string, vendor *string) (*domain.MasterComponentWithVendor, error) {
 	var row domain.MasterComponentWithVendor
-	query := `SELECT TOP 1 c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = @p1`
+	query := `SELECT c.component_id, c.component_name, c.vendor_id, c.failure_rate, c.cost, c.compatibility, c.serial_number, m.manufacturer_name FROM dbo.MasterComponent c INNER JOIN dbo.MasterManufacturer m ON m.vendor_id = c.vendor_id WHERE c.component_name = $1 LIMIT 1`
 	if vendor == nil {
 		return optional(&row, s.q.GetContext(ctx, &row, query+` ORDER BY c.component_id`, name))
 	}
-	return optional(&row, s.q.GetContext(ctx, &row, query+` AND m.manufacturer_name = @p2 ORDER BY c.component_id`, name, *vendor))
+	return optional(&row, s.q.GetContext(ctx, &row, query+` AND m.manufacturer_name = $2 ORDER BY c.component_id`, name, *vendor))
 }

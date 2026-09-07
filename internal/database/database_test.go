@@ -6,24 +6,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSplitBatchesSeparatesOnGo(t *testing.T) {
-	script := "CREATE TABLE a (id int)\nGO\n\nINSERT INTO a VALUES (1)\ngo\n"
-	batches := SplitBatches(script)
-	assert.Equal(t, []string{"CREATE TABLE a (id int)", "INSERT INTO a VALUES (1)"}, batches)
+func TestSplitStatementsSeparatesOnSemicolon(t *testing.T) {
+	script := "CREATE TABLE a (id int);\n\nINSERT INTO a VALUES (1);\n"
+	statements := SplitStatements(script)
+	assert.Equal(t, []string{"CREATE TABLE a (id int)", "INSERT INTO a VALUES (1)"}, statements)
 }
 
-func TestSplitBatchesKeepsScriptWithoutGo(t *testing.T) {
-	batches := SplitBatches("SELECT 1")
-	assert.Equal(t, []string{"SELECT 1"}, batches)
+func TestSplitStatementsKeepsDollarQuotedBodyWhole(t *testing.T) {
+	script := "DO $$ BEGIN PERFORM 1; PERFORM 2; END $$;\nSELECT 1;"
+	statements := SplitStatements(script)
+	assert.Equal(t, []string{"DO $$ BEGIN PERFORM 1; PERFORM 2; END $$", "SELECT 1"}, statements)
 }
 
-func TestWithDatabaseRewritesUrlForm(t *testing.T) {
-	rewritten := WithDatabase("sqlserver://user:pass@host:1433?database=strata&encrypt=disable", "master")
-	assert.Contains(t, rewritten, "database=master")
-	assert.NotContains(t, rewritten, "database=strata")
+func TestSplitStatementsIgnoresSemicolonInsideStrings(t *testing.T) {
+	statements := SplitStatements("INSERT INTO a VALUES ('x;y');SELECT 1")
+	assert.Equal(t, []string{"INSERT INTO a VALUES ('x;y')", "SELECT 1"}, statements)
 }
 
-func TestWithDatabaseRewritesKeyValueForm(t *testing.T) {
-	rewritten := WithDatabase("server=host,1433;database=strata;user id=u;password=p", "master")
-	assert.Equal(t, "server=host,1433;user id=u;password=p;database=master", rewritten)
+func TestWithDatabaseSwapsThePath(t *testing.T) {
+	rewritten := WithDatabase("postgres://user:pass@host:5432/strata?sslmode=disable", "postgres")
+	assert.Equal(t, "postgres://user:pass@host:5432/postgres?sslmode=disable", rewritten)
+}
+
+func TestDatabaseNameReadsThePath(t *testing.T) {
+	assert.Equal(t, "strata", DatabaseName("postgres://user:pass@host:5432/strata?sslmode=disable"))
 }

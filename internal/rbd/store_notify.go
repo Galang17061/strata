@@ -10,7 +10,7 @@ import (
 
 func (s *Store) FindThreshold(ctx context.Context, rbdSystemId string) (*domain.Number, error) {
 	var threshold domain.Number
-	err := s.q.GetContext(ctx, &threshold, `SELECT threshold FROM dbo.SystemThreshold WHERE rbd_system_id = @p1`, rbdSystemId)
+	err := s.q.GetContext(ctx, &threshold, `SELECT threshold FROM dbo.SystemThreshold WHERE rbd_system_id = $1`, rbdSystemId)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -22,10 +22,10 @@ func (s *Store) FindThreshold(ctx context.Context, rbdSystemId string) (*domain.
 
 func (s *Store) SetThreshold(ctx context.Context, rbdSystemId string, threshold *domain.Number, updatedBy string) error {
 	if threshold == nil {
-		_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.SystemThreshold WHERE rbd_system_id = @p1`, rbdSystemId)
+		_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.SystemThreshold WHERE rbd_system_id = $1`, rbdSystemId)
 		return err
 	}
-	_, err := s.q.ExecContext(ctx, `MERGE dbo.SystemThreshold AS target USING (SELECT @p1 AS rbd_system_id) AS source ON target.rbd_system_id = source.rbd_system_id WHEN MATCHED THEN UPDATE SET threshold = @p2, updated_by = @p3, updated_at = GETDATE() WHEN NOT MATCHED THEN INSERT (rbd_system_id, threshold, updated_by) VALUES (@p1, @p2, @p3);`, rbdSystemId, threshold, updatedBy)
+	_, err := s.q.ExecContext(ctx, `INSERT INTO dbo.SystemThreshold (rbd_system_id, threshold, updated_by) VALUES ($1, $2, $3) ON CONFLICT (rbd_system_id) DO UPDATE SET threshold = $2, updated_by = $3, updated_at = now()`, rbdSystemId, threshold, updatedBy)
 	return err
 }
 
@@ -38,13 +38,13 @@ type notificationRow struct {
 }
 
 func (s *Store) InsertNotification(ctx context.Context, rbdSystemId, title, body string) error {
-	_, err := s.q.ExecContext(ctx, `INSERT INTO dbo.Notification (notification_id, rbd_system_id, title, body) VALUES (@p1, @p2, @p3, @p4)`,
+	_, err := s.q.ExecContext(ctx, `INSERT INTO dbo.Notification (notification_id, rbd_system_id, title, body) VALUES ($1, $2, $3, $4)`,
 		domain.NewGuid().String(), rbdSystemId, title, body)
 	return err
 }
 
 func (s *Store) RecentNotifications(ctx context.Context, limit int) ([]notificationRow, error) {
 	rows := []notificationRow{}
-	err := s.q.SelectContext(ctx, &rows, `SELECT TOP (@p1) notification_id, rbd_system_id, title, body, created_at FROM dbo.Notification ORDER BY created_at DESC, notification_id DESC`, limit)
+	err := s.q.SelectContext(ctx, &rows, `SELECT notification_id, rbd_system_id, title, body, created_at FROM dbo.Notification ORDER BY created_at DESC, notification_id DESC LIMIT $1`, limit)
 	return rows, err
 }

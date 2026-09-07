@@ -1,3 +1,1 @@
-IF COL_LENGTH(N'dbo.SystemComponentProperties', N'allowed_failures') IS NULL
-ALTER TABLE dbo.SystemComponentProperties ADD allowed_failures INT NOT NULL CONSTRAINT DF_SystemComponentProperties_allowed_failures DEFAULT 0 WITH VALUES;
-GO
+ALTER TABLE dbo.SystemComponentProperties ADD COLUMN IF NOT EXISTS allowed_failures int NOT NULL DEFAULT 0;

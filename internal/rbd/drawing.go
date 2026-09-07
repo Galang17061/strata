@@ -454,7 +454,7 @@ func (s *DrawingService) SaveEdgesBySystem(ctx context.Context, rbdSystemId stri
 
 func (st *Store) HierarchiesByParentAndLevel(ctx context.Context, parentId string, level int) ([]domain.Hierarchy, error) {
 	rows := []domain.Hierarchy{}
-	return rows, st.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE parent_id = @p1 AND level = @p2 ORDER BY hierarchy_id`, parentId, level)
+	return rows, st.q.SelectContext(ctx, &rows, `SELECT `+domain.HierarchyColumns+` FROM dbo.Hierarchy WHERE parent_id = $1 AND level = $2 ORDER BY hierarchy_id`, parentId, level)
 }
 
 func (st *Store) regenerateSystemLevel(ctx context.Context, rbdSystemId, currentUser string) error {

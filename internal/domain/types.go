@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	mssql "github.com/microsoft/go-mssqldb"
 	"github.com/shopspring/decimal"
 )
 
@@ -213,14 +212,33 @@ func (g *Guid) UnmarshalJSON(data []byte) error {
 }
 
 func (g *Guid) Scan(src any) error {
-	var identifier mssql.UniqueIdentifier
-	if err := identifier.Scan(src); err != nil {
-		return err
+	switch value := src.(type) {
+	case string:
+		parsed, err := ParseGuid(value)
+		if err != nil {
+			return err
+		}
+		*g = parsed
+		return nil
+	case []byte:
+		if len(value) == 16 {
+			copy(g[:], value)
+			return nil
+		}
+		parsed, err := ParseGuid(string(value))
+		if err != nil {
+			return err
+		}
+		*g = parsed
+		return nil
+	case nil:
+		*g = EmptyGuid
+		return nil
+	default:
+		return fmt.Errorf("cannot scan %T into Guid", src)
 	}
-	copy(g[:], identifier[:])
-	return nil
 }
 
 func (g Guid) Value() (driver.Value, error) {
-	return mssql.UniqueIdentifier(g).Value()
+	return g.String(), nil
 }

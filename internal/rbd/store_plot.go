@@ -16,23 +16,23 @@ type plotRow struct {
 
 func (s *Store) PlotRowsOfSystem(ctx context.Context, rbdSystemId string) ([]plotRow, error) {
 	rows := []plotRow{}
-	return rows, s.q.SelectContext(ctx, &rows, `SELECT p.time_t, p.system_component_id, c.component_name, c.formula_code, p.reliability_comp FROM dbo.ReliabilityPlotComponent p INNER JOIN dbo.SystemComponentProperties c ON c.system_component_id = p.system_component_id WHERE c.rbd_system_id = @p1 ORDER BY p.reliability_plot_id`, rbdSystemId)
+	return rows, s.q.SelectContext(ctx, &rows, `SELECT p.time_t, p.system_component_id, c.component_name, c.formula_code, p.reliability_comp FROM dbo.ReliabilityPlotComponent p INNER JOIN dbo.SystemComponentProperties c ON c.system_component_id = p.system_component_id WHERE c.rbd_system_id = $1 ORDER BY p.reliability_plot_id`, rbdSystemId)
 }
 
 func (s *Store) LastPlotId(ctx context.Context) (*string, error) {
 	var id string
-	err := s.q.GetContext(ctx, &id, `SELECT TOP 1 reliability_plot_id FROM dbo.ReliabilityPlotComponent ORDER BY reliability_plot_id DESC`)
+	err := s.q.GetContext(ctx, &id, `SELECT reliability_plot_id FROM dbo.ReliabilityPlotComponent ORDER BY reliability_plot_id DESC LIMIT 1`)
 	return optional(&id, err)
 }
 
 func (s *Store) DeletePlotsOfComponent(ctx context.Context, systemComponentId string) error {
-	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityPlotComponent WHERE system_component_id = @p1`, systemComponentId)
+	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityPlotComponent WHERE system_component_id = $1`, systemComponentId)
 	return err
 }
 
 func (s *Store) InsertPlots(ctx context.Context, rows []domain.ReliabilityPlotComponent) error {
 	for _, p := range rows {
-		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.ReliabilityPlotComponent (`+domain.PlotColumns+`) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8)`,
+		if _, err := s.q.ExecContext(ctx, `INSERT INTO dbo.ReliabilityPlotComponent (`+domain.PlotColumns+`) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 			p.ReliabilityPlotId, p.SystemComponentId, p.TimeT, p.ReliabilityComp, p.CreatedAt, p.UpdatedAt, p.CreatedBy, p.UpdatedBy); err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ func (s *Store) AllPlots(ctx context.Context) ([]domain.ReliabilityPlotComponent
 
 func (s *Store) FindPlot(ctx context.Context, reliabilityPlotId string) (*domain.ReliabilityPlotComponent, error) {
 	var row domain.ReliabilityPlotComponent
-	found, err := optional(&row, s.q.GetContext(ctx, &row, `SELECT `+domain.PlotColumns+` FROM dbo.ReliabilityPlotComponent WHERE reliability_plot_id = @p1`, reliabilityPlotId))
+	found, err := optional(&row, s.q.GetContext(ctx, &row, `SELECT `+domain.PlotColumns+` FROM dbo.ReliabilityPlotComponent WHERE reliability_plot_id = $1`, reliabilityPlotId))
 	if err != nil || found == nil {
 		return found, err
 	}
@@ -80,12 +80,12 @@ func (s *Store) attachPlotComponents(ctx context.Context, rows []domain.Reliabil
 }
 
 func (s *Store) UpdatePlot(ctx context.Context, p domain.ReliabilityPlotComponent) error {
-	_, err := s.q.ExecContext(ctx, `UPDATE dbo.ReliabilityPlotComponent SET system_component_id = @p2, time_t = @p3, reliability_comp = @p4, updated_at = @p5, updated_by = @p6 WHERE reliability_plot_id = @p1`,
+	_, err := s.q.ExecContext(ctx, `UPDATE dbo.ReliabilityPlotComponent SET system_component_id = $2, time_t = $3, reliability_comp = $4, updated_at = $5, updated_by = $6 WHERE reliability_plot_id = $1`,
 		p.ReliabilityPlotId, p.SystemComponentId, p.TimeT, p.ReliabilityComp, p.UpdatedAt, p.UpdatedBy)
 	return err
 }
 
 func (s *Store) DeletePlot(ctx context.Context, reliabilityPlotId string) error {
-	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityPlotComponent WHERE reliability_plot_id = @p1`, reliabilityPlotId)
+	_, err := s.q.ExecContext(ctx, `DELETE FROM dbo.ReliabilityPlotComponent WHERE reliability_plot_id = $1`, reliabilityPlotId)
 	return err
 }

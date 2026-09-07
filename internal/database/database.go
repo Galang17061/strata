@@ -9,14 +9,12 @@ import (
 	"sort"
 	"strings"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/microsoft/go-mssqldb"
 )
 
-const databaseScriptPrefix = "0000_"
-
 func Open(ctx context.Context, connectionString string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlserver", connectionString)
+	db, err := sqlx.Open("pgx", connectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -28,20 +26,22 @@ func Open(ctx context.Context, connectionString string) (*sqlx.DB, error) {
 }
 
 func EnsureDatabase(ctx context.Context, connectionString, dir string) error {
-	master, err := Open(ctx, WithDatabase(connectionString, "master"))
+	name := DatabaseName(connectionString)
+	if name == "" {
+		return fmt.Errorf("connection string has no database name")
+	}
+	maintenance, err := Open(ctx, WithDatabase(connectionString, "postgres"))
 	if err != nil {
 		return err
 	}
-	defer master.Close()
-	names, err := scriptNames(dir)
-	if err != nil {
+	defer maintenance.Close()
+	var exists bool
+	if err := maintenance.GetContext(ctx, &exists, `SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)`, name); err != nil {
 		return err
 	}
-	for _, name := range names {
-		if strings.HasPrefix(name, databaseScriptPrefix) {
-			if err := runScript(ctx, master, dir, name); err != nil {
-				return err
-			}
+	if !exists {
+		if _, err := maintenance.ExecContext(ctx, fmt.Sprintf(`CREATE DATABASE %q`, name)); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -53,9 +53,6 @@ func Migrate(ctx context.Context, db *sqlx.DB, dir string) error {
 		return err
 	}
 	for _, name := range names {
-		if strings.HasPrefix(name, databaseScriptPrefix) {
-			continue
-		}
 		if err := runScript(ctx, db, dir, name); err != nil {
 			return err
 		}
@@ -63,25 +60,21 @@ func Migrate(ctx context.Context, db *sqlx.DB, dir string) error {
 	return nil
 }
 
+func DatabaseName(connectionString string) string {
+	parsed, err := url.Parse(connectionString)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimPrefix(parsed.Path, "/")
+}
+
 func WithDatabase(connectionString, database string) string {
-	if parsed, err := url.Parse(connectionString); err == nil && parsed.Scheme != "" {
-		query := parsed.Query()
-		query.Set("database", database)
-		parsed.RawQuery = query.Encode()
-		return parsed.String()
+	parsed, err := url.Parse(connectionString)
+	if err != nil {
+		return connectionString
 	}
-	parts := strings.Split(connectionString, ";")
-	kept := parts[:0]
-	for _, part := range parts {
-		key := strings.ToLower(strings.TrimSpace(strings.SplitN(part, "=", 2)[0]))
-		if key == "database" || key == "initial catalog" {
-			continue
-		}
-		if strings.TrimSpace(part) != "" {
-			kept = append(kept, part)
-		}
-	}
-	return strings.Join(append(kept, "database="+database), ";")
+	parsed.Path = "/" + database
+	return parsed.String()
 }
 
 func scriptNames(dir string) ([]string, error) {
@@ -104,31 +97,60 @@ func runScript(ctx context.Context, db *sqlx.DB, dir, name string) error {
 	if err != nil {
 		return err
 	}
-	for index, batch := range SplitBatches(string(script)) {
-		if _, err := db.ExecContext(ctx, batch); err != nil {
-			return fmt.Errorf("%s batch %d: %w", name, index+1, err)
+	for index, statement := range SplitStatements(string(script)) {
+		if _, err := db.ExecContext(ctx, statement); err != nil {
+			return fmt.Errorf("%s statement %d: %w", name, index+1, err)
 		}
 	}
 	return nil
 }
 
-func SplitBatches(script string) []string {
-	batches := []string{}
-	current := []string{}
+func SplitStatements(script string) []string {
+	statements := []string{}
+	var current strings.Builder
+	inSingleQuote := false
+	inDollarQuote := false
 	flush := func() {
-		text := strings.TrimSpace(strings.Join(current, "\n"))
+		text := strings.TrimSpace(current.String())
 		if text != "" {
-			batches = append(batches, text)
+			statements = append(statements, text)
 		}
-		current = current[:0]
+		current.Reset()
 	}
-	for _, line := range strings.Split(script, "\n") {
-		if strings.EqualFold(strings.TrimSpace(line), "GO") {
-			flush()
+	runes := []rune(script)
+	for i := 0; i < len(runes); i++ {
+		c := runes[i]
+		if inSingleQuote {
+			current.WriteRune(c)
+			if c == '\'' {
+				inSingleQuote = false
+			}
 			continue
 		}
-		current = append(current, line)
+		if inDollarQuote {
+			current.WriteRune(c)
+			if c == '$' && i+1 < len(runes) && runes[i+1] == '$' {
+				current.WriteRune(runes[i+1])
+				i++
+				inDollarQuote = false
+			}
+			continue
+		}
+		switch {
+		case c == '\'':
+			inSingleQuote = true
+			current.WriteRune(c)
+		case c == '$' && i+1 < len(runes) && runes[i+1] == '$':
+			inDollarQuote = true
+			current.WriteRune(c)
+			current.WriteRune(runes[i+1])
+			i++
+		case c == ';':
+			flush()
+		default:
+			current.WriteRune(c)
+		}
 	}
 	flush()
-	return batches
+	return statements
 }

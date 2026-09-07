@@ -31,7 +31,7 @@ type Entry struct {
 }
 
 func (s *Store) Insert(ctx context.Context, entry Entry) error {
-	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.AuditTrail (audit_trail_id, user_name, method, path, status_code) VALUES (@p1, @p2, @p3, @p4, @p5)`,
+	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.AuditTrail (audit_trail_id, user_name, method, path, status_code) VALUES ($1, $2, $3, $4, $5)`,
 		entry.AuditTrailId, entry.UserName, entry.Method, entry.Path, entry.StatusCode)
 	return err
 }
@@ -43,7 +43,7 @@ func (s *Store) Page(ctx context.Context, page, pageSize int) ([]Entry, int, err
 	}
 	rows := []Entry{}
 	offset := (page - 1) * pageSize
-	err := s.db.SelectContext(ctx, &rows, `SELECT audit_trail_id, user_name, method, path, status_code, created_at FROM dbo.AuditTrail ORDER BY created_at DESC, audit_trail_id DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY`, offset, pageSize)
+	err := s.db.SelectContext(ctx, &rows, `SELECT audit_trail_id, user_name, method, path, status_code, created_at FROM dbo.AuditTrail ORDER BY created_at DESC, audit_trail_id DESC OFFSET $1 ROWS FETCH NEXT $2 ROWS ONLY`, offset, pageSize)
 	return rows, total, err
 }
 

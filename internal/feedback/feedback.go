@@ -32,7 +32,7 @@ type Entry struct {
 }
 
 func (s *Store) Insert(ctx context.Context, entry Entry) error {
-	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.Feedback (feedback_id, user_name, category, message, page) VALUES (@p1, @p2, @p3, @p4, @p5)`,
+	_, err := s.db.ExecContext(ctx, `INSERT INTO dbo.Feedback (feedback_id, user_name, category, message, page) VALUES ($1, $2, $3, $4, $5)`,
 		entry.FeedbackId, entry.UserName, entry.Category, entry.Message, entry.Page)
 	return err
 }
@@ -44,7 +44,7 @@ func (s *Store) Page(ctx context.Context, page, pageSize int) ([]Entry, int, err
 	}
 	rows := []Entry{}
 	offset := (page - 1) * pageSize
-	err := s.db.SelectContext(ctx, &rows, `SELECT feedback_id, user_name, category, message, page, created_at FROM dbo.Feedback ORDER BY created_at DESC, feedback_id DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY`, offset, pageSize)
+	err := s.db.SelectContext(ctx, &rows, `SELECT feedback_id, user_name, category, message, page, created_at FROM dbo.Feedback ORDER BY created_at DESC, feedback_id DESC OFFSET $1 ROWS FETCH NEXT $2 ROWS ONLY`, offset, pageSize)
 	return rows, total, err
 }
 
