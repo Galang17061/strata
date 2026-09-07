@@ -88,12 +88,12 @@ func (s *Store) MarkInviteAccepted(ctx context.Context, id string) error {
 }
 
 type userWithRole struct {
-	Id       domain.Guid  `db:"Id"`
-	Fullname string       `db:"Fullname"`
-	UserName string       `db:"UserName"`
-	Email    string       `db:"Email"`
-	RoleId   *domain.Guid `db:"RoleId"`
-	RoleName *string      `db:"RoleName"`
+	Id       domain.Guid  `db:"id"`
+	Fullname string       `db:"fullname"`
+	UserName string       `db:"username"`
+	Email    string       `db:"email"`
+	RoleId   *domain.Guid `db:"roleid"`
+	RoleName *string      `db:"rolename"`
 }
 
 func (s *Store) ListUsersWithRoles(ctx context.Context) ([]userWithRole, error) {

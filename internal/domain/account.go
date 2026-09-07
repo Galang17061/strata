@@ -1,27 +1,27 @@
 package domain
 
 type User struct {
-	Id       Guid   `db:"Id" json:"id"`
-	Fullname string `db:"Fullname" json:"fullname"`
-	UserName string `db:"UserName" json:"userName"`
-	Email    string `db:"Email" json:"email"`
-	Password string `db:"Password" json:"password"`
+	Id       Guid   `db:"id" json:"id"`
+	Fullname string `db:"fullname" json:"fullname"`
+	UserName string `db:"username" json:"userName"`
+	Email    string `db:"email" json:"email"`
+	Password string `db:"password" json:"password"`
 }
 
 type Role struct {
-	Id       Guid   `db:"Id" json:"id"`
-	RoleName string `db:"RoleName" json:"roleName"`
+	Id       Guid   `db:"id" json:"id"`
+	RoleName string `db:"rolename" json:"roleName"`
 }
 
 type UserRole struct {
-	UserId Guid `db:"UserId" json:"userId"`
-	RoleId Guid `db:"RoleId" json:"roleId"`
+	UserId Guid `db:"userid" json:"userId"`
+	RoleId Guid `db:"roleid" json:"roleId"`
 }
 
 type UserAccess struct {
-	Id         Guid   `db:"Id" json:"id"`
-	UserId     Guid   `db:"UserId" json:"userId"`
-	Modul      string `db:"Modul" json:"modul"`
+	Id         Guid   `db:"id" json:"id"`
+	UserId     Guid   `db:"userid" json:"userId"`
+	Modul      string `db:"modul" json:"modul"`
 	IsAdd      bool   `db:"is_add" json:"is_add"`
 	IsEdit     bool   `db:"is_edit" json:"is_edit"`
 	IsDelete   bool   `db:"is_delete" json:"is_delete"`
@@ -141,11 +141,11 @@ type UserAccessEdit struct {
 }
 
 type UserAccessData struct {
-	Id         Guid   `db:"Id" json:"id"`
-	UserId     Guid   `db:"UserId" json:"userId"`
-	UserName   string `db:"UserName" json:"userName"`
-	RoleName   string `db:"RoleName" json:"roleName"`
-	Modul      string `db:"Modul" json:"modul"`
+	Id         Guid   `db:"id" json:"id"`
+	UserId     Guid   `db:"userid" json:"userId"`
+	UserName   string `db:"username" json:"userName"`
+	RoleName   string `db:"rolename" json:"roleName"`
+	Modul      string `db:"modul" json:"modul"`
 	IsAdd      bool   `db:"is_add" json:"is_add"`
 	IsEdit     bool   `db:"is_edit" json:"is_edit"`
 	IsDelete   bool   `db:"is_delete" json:"is_delete"`
