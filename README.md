@@ -60,9 +60,23 @@ go build -o bin/strata ./cmd/strata
 
 `strata migrate` creates the `strata` database when the login is allowed to, then applies `migrations/0001_schema.sql`, which is idempotent and can be run again at any time. The server answers on `http://localhost:5000`; `GET /health` reports liveness and `/swagger/index.html` opens the interactive API description.
 
+## Long work and the queue
+
+Anything too slow for a click is handed to a queue instead. `POST /api/Simulation/system/{id}/monte-carlo` writes a row into `dbo.Job` and answers immediately with that job. A second copy of the same binary, started as
+
+```
+./bin/strata worker
+```
+
+takes one waiting job at a time, runs it, and writes the answer back. Every move a job makes is announced on the database channel `strata_jobs`, so `GET /api/Job/stream` can hold a line open and push each change to the browser as it happens. Read a finished job with `GET /api/Job/{id}` or list them with `GET /api/Job`.
+
+The stream needs the same bearer token as every other call, so a browser should read it with `fetch` rather than `EventSource` — a token in the query string would end up in the access log.
+
+Nothing breaks without a worker: jobs simply wait. A job left running by a worker that died is offered again after thirty minutes.
+
 ## Running with Docker
 
-The compose file starts two services on the `strata-network` network: `strata-db` (PostgreSQL 17 on port 5432, data kept in the `strata-pg-data` volume) and `strata-api` (port 5000, uploads kept in the `strata-upload` volume). The API container runs the migration and then serves.
+The compose file starts three services on the `strata-network` network: `strata-db` (PostgreSQL 17 on port 5432, data kept in the `strata-pg-data` volume), `strata-api` (port 5000, uploads kept in the `strata-upload` volume) and `strata-worker` (no ports, it only drains the queue). The API container runs the migration and then serves.
 
 ```
 cp .env.example .env
@@ -70,7 +84,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-`.env` feeds both services: `STRATA_DB_SA_PASSWORD` sets the PostgreSQL password and `STRATA_DB_CONNECTION` must point at `strata-db:5432` with the same password. When the API runs outside Docker against that database, use `localhost:5432` in the URL instead.
+`.env` feeds all three services: `STRATA_DB_SA_PASSWORD` sets the PostgreSQL password and `STRATA_DB_CONNECTION` must point at `strata-db:5432` with the same password. When the API runs outside Docker against that database, use `localhost:5432` in the URL instead.
 
 ## Tests
 

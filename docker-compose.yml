@@ -41,6 +41,27 @@ services:
     networks:
       - strata-network
 
+  strata-worker:
+    image: strata-api
+    container_name: strata-worker
+    cpus: 1.5
+    mem_limit: 320m
+    env_file: .env
+    environment:
+      STRATA_UPLOAD_DIR: /app/upload
+      STRATA_MIGRATIONS_DIR: /app/migrations
+    entrypoint: ["strata", "worker"]
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    volumes:
+      - strata-upload:/app/upload
+    depends_on:
+      strata-api:
+        condition: service_healthy
+    networks:
+      - strata-network
+
   strata-web:
     build:
       context: ${STRATA_WEB_DIR:-../strata-web}
