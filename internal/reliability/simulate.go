@@ -289,10 +289,10 @@ func wilsonBounds(successes, trials int) (float64, float64) {
 	margin := z * math.Sqrt(share*(1-share)/count+z*z/(4*count*count)) / denominator
 	lower := center - margin
 	upper := center + margin
-	if lower < 0 {
+	if lower < 0 || successes == 0 {
 		lower = 0
 	}
-	if upper > 1 {
+	if upper > 1 || successes == trials {
 		upper = 1
 	}
 	return lower, upper

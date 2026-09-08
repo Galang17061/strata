@@ -141,6 +141,15 @@ func TestSimulateDrawsACurveThatOnlyFalls(t *testing.T) {
 	assert.InDelta(t, output.Reliability, output.Curve[len(output.Curve)-1].Reliability, 0.000001)
 }
 
+func TestWilsonBoundsReachTheEdgesWhenEveryRunAgrees(t *testing.T) {
+	lower, upper := wilsonBounds(500, 500)
+	assert.Equal(t, 1.0, upper)
+	assert.Less(t, lower, 1.0)
+	lower, upper = wilsonBounds(0, 500)
+	assert.Equal(t, 0.0, lower)
+	assert.Greater(t, upper, 0.0)
+}
+
 func TestSimulateRefusesAnEmptyMission(t *testing.T) {
 	_, err := Simulate(SimulationInput{Formula: "A", Parts: []SimulationPart{exponentialPart("A", 0.001)}})
 	assert.Error(t, err)
