@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/Galang17061/strata-api/internal/auth"
 	"github.com/Galang17061/strata-api/internal/config"
 	"github.com/Galang17061/strata-api/internal/feedback"
+	"github.com/Galang17061/strata-api/internal/jobs"
 	"github.com/Galang17061/strata-api/internal/mail"
 	"github.com/Galang17061/strata-api/internal/master"
 	"github.com/Galang17061/strata-api/internal/metrics"
@@ -51,6 +53,11 @@ func New(cfg config.Config, db *sqlx.DB) http.Handler {
 	rbd.NewPoissonHandler(parameters).Mount(mux)
 	gate := rbd.NewGate(cfg.GAConcurrency, time.Duration(cfg.GAQueueWait)*time.Second)
 	rbd.NewOptimizationHandler(rbd.NewOptimizationService(rbdStore).WithGate(gate)).Mount(mux)
+	queue := jobs.NewStore(db)
+	listener := jobs.NewListener(cfg.DatabaseURL)
+	listener.Start(context.Background())
+	jobs.NewHandler(queue, listener).Mount(mux)
+	rbd.NewSimulationHandler(rbd.NewSimulationService(rbdStore), queue).Mount(mux)
 	rbd.NewSnapshotHandler(snapshots).Mount(mux)
 	audit.NewHandler(auditStore).Mount(mux)
 	feedback.NewHandler(feedback.NewStore(db), mailer, cfg.FeedbackEmail).Mount(mux)

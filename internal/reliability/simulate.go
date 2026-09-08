@@ -34,19 +34,20 @@ type SimulationInput struct {
 }
 
 type SimulationPoint struct {
-	Hours       float64
-	Reliability float64
+	Hours       float64 `json:"hours"`
+	Reliability float64 `json:"reliability"`
 }
 
 type SimulationCulprit struct {
-	Code  string
-	Share float64
+	Code  string  `json:"code"`
+	Share float64 `json:"share"`
 }
 
 type SimulationOutput struct {
 	Trials       int
 	MissionHours float64
 	Seed         int64
+	Blocks       int
 	Survivors    int
 	Reliability  float64
 	LowerBound   float64
@@ -143,6 +144,7 @@ func Simulate(input SimulationInput) (SimulationOutput, error) {
 		Trials:       trials,
 		MissionHours: input.MissionHours,
 		Seed:         seed,
+		Blocks:       len(blocks),
 		Survivors:    survivors,
 		Reliability:  float64(survivors) / float64(trials),
 		LowerBound:   lower,

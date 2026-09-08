@@ -15,6 +15,8 @@ import (
 
 	"github.com/Galang17061/strata-api/internal/config"
 	"github.com/Galang17061/strata-api/internal/database"
+	"github.com/Galang17061/strata-api/internal/jobs"
+	"github.com/Galang17061/strata-api/internal/rbd"
 	"github.com/Galang17061/strata-api/internal/server"
 )
 
@@ -44,6 +46,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	if len(os.Args) > 1 && os.Args[1] == "worker" {
+		work(db)
+		return
+	}
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           server.New(cfg, db),
@@ -61,6 +67,22 @@ func main() {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdownCancel()
 	_ = httpServer.Shutdown(shutdownCtx)
+}
+
+func work(db *sqlx.DB) {
+	queue := jobs.NewStore(db)
+	worker := jobs.NewWorker(queue, 2*time.Second, rbd.NewSimulationRunner(rbd.NewSimulationService(rbd.NewStore(db))))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-stop
+		cancel()
+	}()
+	log.Printf("Strata worker waiting for %v jobs", worker.Kinds())
+	worker.Run(ctx)
+	log.Print("Strata worker stopped")
 }
 
 func migrate(cfg config.Config) error {
