@@ -57,6 +57,9 @@ type SimulationOutput struct {
 	B10Life      float64
 	Curve        []SimulationPoint
 	Culprits     []SimulationCulprit
+	Unbacked     []string
+	NeverFails   []string
+	Immortal     int
 }
 
 type simulationBlock struct {
@@ -154,8 +157,35 @@ func Simulate(input SimulationInput) (SimulationOutput, error) {
 		B10Life:      quantile(lifetimes, 0.1),
 		Curve:        buildCurve(lifetimes, input.MissionHours, input.CurvePoints),
 		Culprits:     rankCulprits(blocks, blame, trials),
+		Unbacked:     unbackedCodes(structure, blocks),
+		NeverFails:   neverFailingCodes(blocks),
 	}
+	output.Immortal = len(output.NeverFails)
 	return output, nil
+}
+
+func unbackedCodes(structure *Structure, blocks []simulationBlock) []string {
+	backed := map[string]bool{}
+	for _, block := range blocks {
+		backed[block.code] = true
+	}
+	loose := []string{}
+	for _, code := range structure.Codes() {
+		if !backed[code] && !IsVirtualCode(code) {
+			loose = append(loose, code)
+		}
+	}
+	return loose
+}
+
+func neverFailingCodes(blocks []simulationBlock) []string {
+	immortal := []string{}
+	for i := range blocks {
+		if !blocks[i].mortal() {
+			immortal = append(immortal, blocks[i].code)
+		}
+	}
+	return immortal
 }
 
 func prepareBlocks(structure *Structure, parts []SimulationPart) ([]simulationBlock, error) {
@@ -204,6 +234,13 @@ func (b *simulationBlock) sample(stream *rand.Rand) float64 {
 	}
 	sort.Float64s(b.lives)
 	return b.lives[b.total-b.active]
+}
+
+func (b *simulationBlock) mortal() bool {
+	if b.distribution == "weibull" {
+		return b.scale > 0 && b.shape > 0
+	}
+	return b.rate > 0
 }
 
 func (b *simulationBlock) sampleUnit(stream *rand.Rand) float64 {

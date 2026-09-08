@@ -103,9 +103,11 @@ func (s *Structure) Value(slots []float64) float64 {
 	return s.root.value(slots)
 }
 
+const StandingThreshold = 0.5
+
 func (s *Structure) Standing(slots []float64) bool {
 	value := s.root.value(slots)
-	return !math.IsNaN(value) && value >= 0.5
+	return !math.IsNaN(value) && value >= StandingThreshold
 }
 
 func (p *structureParser) skipSpaces() {
