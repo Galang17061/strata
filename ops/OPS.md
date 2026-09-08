@@ -20,3 +20,17 @@ docker compose up -d strata-mail strata-uptime strata-prometheus strata-grafana
 A known honest limit: everything here lives and dies with this machine and Docker
 Desktop. A watchman in the same house cannot report that the house burned down - move
 this to a server the moment one exists.
+
+## Refreshing a server after the code changes
+
+The image carries its own copy of `migrations/`, so a server that only receives new files
+on disk keeps running the old ones. Deleted migrations are the trap: they stay inside the
+running image and fail every boot. Always rebuild, never only restart:
+
+```sh
+docker compose build strata-api
+docker compose up -d strata-api
+docker logs strata-api | tail -3
+```
+
+If the log repeats a script name you no longer have, the image is stale - build it again.
