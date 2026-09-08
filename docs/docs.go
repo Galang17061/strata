@@ -15,6 +15,44 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/Audit": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audit"
+                ],
+                "summary": "Page through the record of who changed what and when",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
         "/api/Auth/ForgotPassword": {
             "post": {
                 "consumes": [
@@ -160,6 +198,86 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Page through the notes people have sent in",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Send a note to the people who build Strata",
+                "parameters": [
+                    {
+                        "description": "Category, message and the page it concerns",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/feedback.CreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationProblem"
                         }
                     }
                 }
@@ -503,6 +621,158 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Job": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Page through the jobs the workers have taken on",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Only jobs for this system",
+                        "name": "rbdSystemId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Rows per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Job/stream": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Hold a line open and hear about every job as it moves",
+                "responses": {
+                    "200": {
+                        "description": "event stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Job/{jobId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Look at one job and its result",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job id",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Job/{jobId}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Job"
+                ],
+                "summary": "Call off a job that is still waiting its turn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job id",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -2037,6 +2307,123 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/MasterSystem/{rbdSystemId}/threshold": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Show the reliability floor set for a system, if any",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Set or clear the reliability floor that raises an alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Floor between 0 and 1, or null to clear",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ThresholdUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Notification": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "List the latest reliability alerts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "How many to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
         "/api/Optimization/apply": {
             "post": {
                 "security": [
@@ -3369,6 +3756,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/ReliabilityTotal/system/{rbdSystemId}/recalculate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ReliabilityTotal"
+                ],
+                "summary": "Rescore every part and layer of a system in one call",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Running hours for every part",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.BatchRecalculateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/ReliabilityTotal/update-running-hours": {
             "put": {
                 "security": [
@@ -3756,6 +4197,229 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Simulation/system/{rbdSystemId}/monte-carlo": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Simulation"
+                ],
+                "summary": "Queue a Monte Carlo rehearsal of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "rbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Mission hours, trials and an optional seed",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/rbd.SimulationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationProblem"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Snapshot/system/{RbdSystemId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Snapshot"
+                ],
+                "summary": "List the saved versions of a system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "RbdSystemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Snapshot"
+                ],
+                "summary": "Save a named version of a system as it stands right now",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "System id",
+                        "name": "RbdSystemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Version label",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SnapshotCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Snapshot/{SnapshotId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Snapshot"
+                ],
+                "summary": "Throw away one saved version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Snapshot id",
+                        "name": "SnapshotId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/Snapshot/{SnapshotId}/Restore": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Snapshot"
+                ],
+                "summary": "Bring a saved version back to life as a fresh system in its project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Snapshot id",
+                        "name": "SnapshotId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Optional name for the restored system",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SnapshotRestoreRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -4247,6 +4911,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/SystemComponentProperties/{systemComponentId}/suggested-parameters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemComponentProperties"
+                ],
+                "summary": "Suggest a failure rate from the history the catalogue already holds",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Component id",
+                        "name": "systemComponentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    }
+                }
+            }
+        },
         "/api/SystemComponentProperties/{systemComponentId}/weibull": {
             "put": {
                 "security": [
@@ -4604,6 +5307,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/User/AcceptInvite": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Accept an invitation and create the account it promises",
+                "parameters": [
+                    {
+                        "description": "Token and chosen credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.InviteAccept"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationProblem"
+                        }
+                    }
+                }
+            }
+        },
         "/api/User/ChangePassword": {
             "put": {
                 "security": [
@@ -4755,6 +5497,87 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/Invite": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Invite someone by email to create their own account",
+                "parameters": [
+                    {
+                        "description": "Email and role",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.InviteCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/web.ValidationProblem"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/User/Invite/{Token}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Show whom an invitation token belongs to",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invitation token",
+                        "name": "Token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.Envelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -5180,6 +6003,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.BatchRecalculateRequest": {
+            "type": "object",
+            "properties": {
+                "runningHours": {
+                    "type": "number"
+                }
+            }
+        },
         "domain.ComponentDetailUpdate": {
             "type": "object",
             "properties": {
@@ -5437,6 +6268,40 @@ const docTemplate = `{
                 },
                 "targetId": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.InviteAccept": {
+            "type": "object",
+            "properties": {
+                "fullname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "reconfirmPassword": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.InviteCreate": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -5719,6 +6584,22 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SnapshotCreateRequest": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SnapshotRestoreRequest": {
+            "type": "object",
+            "properties": {
+                "systemName": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.SystemCreate": {
             "type": "object",
             "properties": {
@@ -5753,6 +6634,14 @@ const docTemplate = `{
                 },
                 "systemName": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.ThresholdUpdate": {
+            "type": "object",
+            "properties": {
+                "threshold": {
+                    "type": "number"
                 }
             }
         },
@@ -5877,6 +6766,43 @@ const docTemplate = `{
                 },
                 "userName": {
                     "type": "string"
+                }
+            }
+        },
+        "feedback.CreateRequest": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "string"
+                }
+            }
+        },
+        "rbd.SimulationRequest": {
+            "type": "object",
+            "properties": {
+                "curvePoints": {
+                    "type": "integer"
+                },
+                "hierarchyId": {
+                    "type": "string"
+                },
+                "missionHours": {
+                    "type": "number"
+                },
+                "rbdSystemId": {
+                    "type": "string"
+                },
+                "seed": {
+                    "type": "integer"
+                },
+                "trials": {
+                    "type": "integer"
                 }
             }
         },

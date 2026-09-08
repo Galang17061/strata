@@ -70,9 +70,11 @@ Anything too slow for a click is handed to a queue instead. `POST /api/Simulatio
 
 takes one waiting job at a time, runs it, and writes the answer back. Every move a job makes is announced on the database channel `strata_jobs`, so `GET /api/Job/stream` can hold a line open and push each change to the browser as it happens. Read a finished job with `GET /api/Job/{id}` or list them with `GET /api/Job`.
 
-The stream needs the same bearer token as every other call, so a browser should read it with `fetch` rather than `EventSource` — a token in the query string would end up in the access log.
+The stream needs the same bearer token as every other call, so a browser should read it with `fetch` rather than `EventSource` — a token in the query string would end up in the access log. A resting reader is never allowed to hold the server up, so a client that falls behind loses events and should ask `GET /api/Job` once on reconnect rather than assume it heard everything.
 
-Nothing breaks without a worker: jobs simply wait. A job left running by a worker that died is offered again after thirty minutes.
+A job that is still waiting can be called off with `POST /api/Job/{id}/cancel`. Everyone sees and cancels only their own work; the administrator sees all of it. Three unfinished jobs per person and sixty in the whole queue is as far as it goes, so one impatient visitor cannot bury the workers.
+
+Nothing breaks without a worker: jobs simply wait. A job left running by a worker that died is offered again after thirty minutes, and every worker looks for such strays every five minutes.
 
 ## Running with Docker
 
