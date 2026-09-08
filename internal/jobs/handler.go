@@ -1,8 +1,10 @@
 package jobs
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -26,7 +28,33 @@ func (h *Handler) Mount(router chi.Router) {
 		protected.Get("/api/Job", h.list)
 		protected.Get("/api/Job/stream", h.stream)
 		protected.Get("/api/Job/{jobId}", h.detail)
+		protected.Post("/api/Job/{jobId}/cancel", h.cancel)
 	})
+}
+
+func Keeper(ctx context.Context) bool {
+	identity, ok := auth.IdentityFrom(ctx)
+	return ok && strings.EqualFold(identity.Role, "admin")
+}
+
+func OwnerId(ctx context.Context) string {
+	identity, _ := auth.IdentityFrom(ctx)
+	return identity.Id
+}
+
+func ownScope(ctx context.Context) string {
+	if Keeper(ctx) {
+		return ""
+	}
+	return OwnerId(ctx)
+}
+
+func mine(ctx context.Context, job *Job) bool {
+	if Keeper(ctx) {
+		return true
+	}
+	owner := OwnerId(ctx)
+	return owner != "" && job.CreatedById != nil && *job.CreatedById == owner
 }
 
 // @Summary Page through the jobs the workers have taken on
@@ -47,7 +75,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	if err != nil || pageSize < 1 || pageSize > 200 {
 		pageSize = 12
 	}
-	rows, total, err := h.store.Page(r.Context(), r.URL.Query().Get("rbdSystemId"), page, pageSize)
+	rows, total, err := h.store.Page(r.Context(), r.URL.Query().Get("rbdSystemId"), ownScope(r.Context()), page, pageSize)
 	if err != nil {
 		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
 		return
@@ -74,11 +102,41 @@ func (h *Handler) detail(w http.ResponseWriter, r *http.Request) {
 		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if job == nil {
+	if job == nil || !mine(r.Context(), job) {
 		web.RespondMessage(w, http.StatusNotFound, "Job not found")
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(job.View(), "Job"))
+}
+
+// @Summary Call off a job that is still waiting its turn
+// @Tags Job
+// @Produce json
+// @Param jobId path string true "Job id"
+// @Success 200 {object} web.Envelope
+// @Failure 404 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/Job/{jobId}/cancel [post]
+func (h *Handler) cancel(w http.ResponseWriter, r *http.Request) {
+	job, err := h.store.Find(r.Context(), chi.URLParam(r, "jobId"))
+	if err != nil {
+		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if job == nil || !mine(r.Context(), job) {
+		web.RespondMessage(w, http.StatusNotFound, "Job not found")
+		return
+	}
+	called, err := h.store.Cancel(r.Context(), job.JobId)
+	if err != nil {
+		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !called {
+		web.Respond(w, http.StatusConflict, web.Failed(http.StatusConflict, "This job has already left the queue, so it cannot be called off.", nil))
+		return
+	}
+	web.Respond(w, http.StatusOK, web.Success(nil, "The job was called off."))
 }
 
 // @Summary Hold a line open and hear about every job as it moves

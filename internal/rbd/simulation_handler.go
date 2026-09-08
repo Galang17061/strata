@@ -1,8 +1,10 @@
 package rbd
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
@@ -65,15 +67,38 @@ func (h *SimulationHandler) enqueue(w http.ResponseWriter, r *http.Request) {
 		web.RespondMessage(w, http.StatusNotFound, "System not found")
 		return
 	}
+	if full, message := h.queueIsFull(r.Context()); full {
+		web.Respond(w, http.StatusTooManyRequests, web.Failed(http.StatusTooManyRequests, message, nil))
+		return
+	}
 	payload, err := json.Marshal(request)
 	if err != nil {
 		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	job, err := h.queue.Enqueue(r.Context(), SimulationKind, string(payload), &request.RbdSystemId, auth.CurrentUserName(r.Context()))
+	job, err := h.queue.Enqueue(r.Context(), SimulationKind, string(payload), &request.RbdSystemId, auth.CurrentUserName(r.Context()), jobs.OwnerId(r.Context()))
 	if err != nil {
 		web.RespondMessage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	web.Respond(w, http.StatusOK, web.Success(job.View(), "The rehearsal is queued. Watch its job for the result."))
+}
+
+func (h *SimulationHandler) queueIsFull(ctx context.Context) (bool, string) {
+	waiting, err := h.queue.CountUnfinished(ctx, "")
+	if err == nil && waiting >= jobs.QueueCeiling {
+		return true, "The queue is full at the moment. Give the workers a minute and try again."
+	}
+	if jobs.Keeper(ctx) {
+		return false, ""
+	}
+	owner := jobs.OwnerId(ctx)
+	if owner == "" {
+		return false, ""
+	}
+	mine, err := h.queue.CountUnfinished(ctx, owner)
+	if err == nil && mine >= jobs.QueuePerUser {
+		return true, "You already have " + strconv.Itoa(mine) + " rehearsals waiting. Let them finish before asking for another."
+	}
+	return false, ""
 }

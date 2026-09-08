@@ -12,14 +12,23 @@ type Runner interface {
 	Run(ctx context.Context, job Job) (string, error)
 }
 
-type Worker struct {
-	store   *Store
-	runners map[string]Runner
-	idle    time.Duration
-	stall   int
+type Queue interface {
+	Claim(ctx context.Context) (*Job, error)
+	Finish(ctx context.Context, jobId, result string) error
+	Fail(ctx context.Context, jobId, message string) error
+	ReleaseStranded(ctx context.Context, olderThanMinutes int) (int64, error)
 }
 
-func NewWorker(store *Store, idle time.Duration, runners ...Runner) *Worker {
+type Worker struct {
+	queue     Queue
+	runners   map[string]Runner
+	idle      time.Duration
+	stall     int
+	sweepp    time.Duration
+	lastSweep time.Time
+}
+
+func NewWorker(queue Queue, idle time.Duration, runners ...Runner) *Worker {
 	registered := map[string]Runner{}
 	for _, runner := range runners {
 		registered[runner.Kind()] = runner
@@ -27,7 +36,7 @@ func NewWorker(store *Store, idle time.Duration, runners ...Runner) *Worker {
 	if idle <= 0 {
 		idle = 2 * time.Second
 	}
-	return &Worker{store: store, runners: registered, idle: idle, stall: 30}
+	return &Worker{queue: queue, runners: registered, idle: idle, stall: 30, sweepp: 5 * time.Minute}
 }
 
 func (w *Worker) Kinds() []string {
@@ -39,15 +48,12 @@ func (w *Worker) Kinds() []string {
 }
 
 func (w *Worker) Run(ctx context.Context) {
-	if released, err := w.store.ReleaseStranded(ctx, w.stall); err == nil && released > 0 {
-		log.Printf("released %d stranded job(s) back to the queue", released)
-	}
 	for {
 		if ctx.Err() != nil {
 			return
 		}
-		worked := w.once(ctx)
-		if worked {
+		w.sweep(ctx)
+		if w.once(ctx) {
 			continue
 		}
 		select {
@@ -58,8 +64,23 @@ func (w *Worker) Run(ctx context.Context) {
 	}
 }
 
+func (w *Worker) sweep(ctx context.Context) {
+	if time.Since(w.lastSweep) < w.sweepp {
+		return
+	}
+	w.lastSweep = time.Now()
+	released, err := w.queue.ReleaseStranded(ctx, w.stall)
+	if err != nil {
+		log.Printf("could not look for stranded jobs: %v", err)
+		return
+	}
+	if released > 0 {
+		log.Printf("released %d stranded job(s) back to the queue", released)
+	}
+}
+
 func (w *Worker) once(ctx context.Context) bool {
-	job, err := w.store.Claim(ctx)
+	job, err := w.queue.Claim(ctx)
 	if err != nil {
 		log.Printf("could not take a job from the queue: %v", err)
 		return false
@@ -69,18 +90,18 @@ func (w *Worker) once(ctx context.Context) bool {
 	}
 	runner, known := w.runners[job.Kind]
 	if !known {
-		w.store.Fail(ctx, job.JobId, "Nothing here knows how to run a "+job.Kind+" job.")
+		w.queue.Fail(ctx, job.JobId, "Nothing here knows how to run a "+job.Kind+" job.")
 		return true
 	}
 	started := time.Now()
 	result, err := w.safely(ctx, runner, *job)
 	if err != nil {
 		log.Printf("%s job %s gave up after %s: %v", job.Kind, job.JobId, time.Since(started).Round(time.Millisecond), err)
-		w.store.Fail(ctx, job.JobId, err.Error())
+		w.queue.Fail(ctx, job.JobId, err.Error())
 		return true
 	}
 	log.Printf("%s job %s finished in %s", job.Kind, job.JobId, time.Since(started).Round(time.Millisecond))
-	if err := w.store.Finish(ctx, job.JobId, result); err != nil {
+	if err := w.queue.Finish(ctx, job.JobId, result); err != nil {
 		log.Printf("finished %s but could not record it: %v", job.JobId, err)
 	}
 	return true
